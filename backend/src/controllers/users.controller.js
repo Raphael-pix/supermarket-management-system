@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { clerkClient } from "@clerk/express";
 
 const prisma = new PrismaClient();
 
@@ -30,7 +29,6 @@ const getAllUsers = async (req, res) => {
       },
       select: {
         id: true,
-        clerkId: true,
         email: true,
         firstName: true,
         lastName: true,
@@ -38,6 +36,7 @@ const getAllUsers = async (req, res) => {
         createdAt: true,
         promotedBy: true,
         promotedAt: true,
+        lastLoginAt: true,
       },
     });
 
@@ -78,28 +77,17 @@ const promoteToAdmin = async (req, res) => {
         promotedBy: performedBy,
         promotedAt: new Date(),
       },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        promotedAt: true,
+      },
     });
-
-    // Update Clerk metadata
-    try {
-      await clerkClient.users.updateUserMetadata(userToPromote.clerkId, {
-        publicMetadata: {
-          role: "ADMIN",
-        },
-      });
-    } catch (clerkError) {
-      console.error("Clerk metadata update error:", clerkError);
-      // Continue even if Clerk update fails - database is source of truth
-    }
 
     res.json({
       message: "User promoted to admin successfully",
-      user: {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        promotedAt: updatedUser.promotedAt,
-      },
+      user: updatedUser,
     });
   } catch (error) {
     console.error("Promote user error:", error);
@@ -140,7 +128,7 @@ const demoteToCustomer = async (req, res) => {
     }
 
     // Prevent self-demotion
-    if (userToDemote.clerkId === req.userId) {
+    if (userToDemote.id === req.userId) {
       return res.status(400).json({
         error: "You cannot demote yourself",
       });
@@ -154,26 +142,16 @@ const demoteToCustomer = async (req, res) => {
         promotedBy: null,
         promotedAt: null,
       },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+      },
     });
-
-    // Update Clerk metadata
-    try {
-      await clerkClient.users.updateUserMetadata(userToDemote.clerkId, {
-        publicMetadata: {
-          role: "CUSTOMER",
-        },
-      });
-    } catch (clerkError) {
-      console.error("Clerk metadata update error:", clerkError);
-    }
 
     res.json({
       message: "User demoted to customer successfully",
-      user: {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        role: updatedUser.role,
-      },
+      user: updatedUser,
     });
   } catch (error) {
     console.error("Demote user error:", error);
@@ -217,52 +195,4 @@ const getUserStats = async (req, res) => {
   }
 };
 
-/**
- * POST /api/users/sync-clerk
- * Sync a user from Clerk to database (called after sign-up)
- */
-const syncClerkUser = async (req, res) => {
-  try {
-    const { clerkId, email, firstName, lastName } = req.body;
-
-    if (!clerkId || !email) {
-      return res.status(400).json({ error: "clerkId and email are required" });
-    }
-
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
-    if (existingUser) {
-      return res.json({ message: "User already exists", user: existingUser });
-    }
-
-    // Create new user with CUSTOMER role by default
-    const newUser = await prisma.user.create({
-      data: {
-        clerkId,
-        email,
-        firstName: firstName || null,
-        lastName: lastName || null,
-        role: "CUSTOMER", // Default role
-      },
-    });
-
-    res.status(201).json({
-      message: "User synced successfully",
-      user: newUser,
-    });
-  } catch (error) {
-    console.error("Sync Clerk user error:", error);
-    res.status(500).json({ error: "Failed to sync user" });
-  }
-};
-
-export {
-  getAllUsers,
-  promoteToAdmin,
-  demoteToCustomer,
-  getUserStats,
-  syncClerkUser,
-};
+export { getAllUsers, promoteToAdmin, demoteToCustomer, getUserStats };

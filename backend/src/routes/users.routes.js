@@ -1,16 +1,13 @@
 import { Router } from "express";
-import { adminOnly, requireAuth } from "../middleware/rbac.js";
+import { adminOnly } from "../middleware/rbac.js";
 import {
   getAllUsers,
   promoteToAdmin,
   demoteToCustomer,
   getUserStats,
-  syncClerkUser,
 } from "../controllers/users.controller.js";
 
 const router = Router();
-
-router.post("/sync-clerk", requireAuth, syncClerkUser);
 
 router.use(adminOnly);
 

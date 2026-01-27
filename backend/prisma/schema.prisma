@@ -13,11 +13,19 @@ enum Role {
 }
 
 model User {
-    id        String   @id @default(cuid())
-    clerkId   String   @unique
-    email     String   @unique
-    role      Role     @default(CUSTOMER)
-    createdAt DateTime @default(now())
+    id          String    @id @default(cuid())
+    password    String
+    firstName   String?
+    lastName    String?
+    email       String    @unique
+    role        Role      @default(CUSTOMER)
+    createdAt   DateTime  @default(now())
+    lastLoginAt DateTime?
+
+    promotedAt    DateTime?
+    promotedById  String?
+    promotedBy    User?     @relation("UserPromotion", fields: [promotedById], references: [id])
+    promotedUsers User[]    @relation("UserPromotion")
 
     sales Sale[]
 }
@@ -68,7 +76,7 @@ model Sale {
     transactionDate DateTime @default(now())
 
     branch   Branch     @relation(fields: [branchId], references: [id])
-    customer User?      @relation(fields: [customerId], references: [clerkId])
+    customer User?      @relation(fields: [customerId], references: [id])
     items    SaleItem[]
 
     @@index([transactionDate])

@@ -1,20 +1,51 @@
-import { getAuth } from "@clerk/express";
+import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+const JWT_SECRET =
+  process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
+
+const { verify } = jwt;
 
 /**
- * Middleware to ensure user is authenticated
+ * Middleware to verify JWT token and extract user info
  */
-const requireAuth = (req, res, next) => {
-  const auth = getAuth(req);
+const requireAuth = async (req, res, next) => {
+  try {
+    // Get token from Authorization header
+    const authHeader = req.headers.authorization;
 
-  if (!auth.userId) {
-    return res.status(401).json({ error: "Unauthorized - Please sign in" });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res
+        .status(401)
+        .json({ error: "Unauthorized - No token provided" });
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = verify(token, JWT_SECRET);
+    } catch (err) {
+      if (err.name === "TokenExpiredError") {
+        return res
+          .status(401)
+          .json({ error: "Token expired - Please login again" });
+      }
+      return res.status(401).json({ error: "Invalid token" });
+    }
+
+    // Attach user info to request
+    req.userId = decoded.userId;
+    req.userEmail = decoded.email;
+    req.userRole = decoded.role;
+
+    next();
+  } catch (error) {
+    console.error("Auth middleware error:", error);
+    res.status(500).json({ error: "Authentication failed" });
   }
-
-  req.userId = auth.userId;
-  next();
 };
 
 /**
@@ -23,8 +54,9 @@ const requireAuth = (req, res, next) => {
  */
 const requireAdmin = async (req, res, next) => {
   try {
+    // Double-check role from database (in case it changed after token was issued)
     const user = await prisma.user.findUnique({
-      where: { clerkId: req.userId },
+      where: { id: req.userId },
       select: { role: true, email: true },
     });
 
@@ -39,8 +71,8 @@ const requireAdmin = async (req, res, next) => {
       });
     }
 
+    // Update role in request in case it changed
     req.userRole = user.role;
-    req.userEmail = user.email;
     next();
   } catch (error) {
     console.error("RBAC Error:", error);
