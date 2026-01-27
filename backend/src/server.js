@@ -7,6 +7,7 @@ import dashboardRoutes from "./routes/dashboard.routes.js";
 import inventoryRoutes from "./routes/inventory.routes.js";
 import salesRoutes from "./routes/sales.routes.js";
 import usersRoutes from "./routes/users.routes.js";
+import posRoutes from "./routes/pos.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,6 +33,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/sales", salesRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/pos", posRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
