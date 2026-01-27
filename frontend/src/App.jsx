@@ -10,6 +10,12 @@ import SignUpPage from "./pages/SignUp";
 import Landing from "./pages/Landing";
 import CustomerRedirect from "./pages/CustomerRedirect";
 
+// POS Pages (no authentication required)
+import BranchSelection from "./pages/pos/BranchSelection";
+import ProductSelection from "./pages/pos/ProductSelection";
+import Checkout from "./pages/pos/Checkout";
+import Receipt from "./pages/pos/Receipt";
+
 // Protected Route Component
 function ProtectedRoute({ children, adminOnly = false }) {
   const { isAuthenticated, isAdmin, loading } = useAuth();
@@ -111,6 +117,12 @@ function App() {
               </PublicRoute>
             }
           />
+
+          {/* POS Routes - No authentication required */}
+          <Route path="/pos" element={<BranchSelection />} />
+          <Route path="/pos/products" element={<ProductSelection />} />
+          <Route path="/pos/checkout" element={<Checkout />} />
+          <Route path="/pos/receipt/:transactionRef" element={<Receipt />} />
 
           {/* Landing/redirect page for authenticated users */}
           <Route
