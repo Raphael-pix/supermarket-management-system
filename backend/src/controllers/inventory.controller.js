@@ -193,7 +193,7 @@ const restockBranch = async (req, res) => {
     const restockLog = await prisma.restockLog.create({
       data: {
         fromBranchId: hqBranch.id,
-        toBranchId,
+        branchId,
         performedById: performedBy,
         notes,
         items: {
