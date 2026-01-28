@@ -8,7 +8,7 @@ datasource db {
 }
 
 enum Role {
-    CUSTOMER
+    USER
     ADMIN
 }
 
@@ -18,16 +18,15 @@ model User {
     firstName   String?
     lastName    String?
     email       String    @unique
-    role        Role      @default(CUSTOMER)
+    role        Role      @default(USER)
     createdAt   DateTime  @default(now())
     lastLoginAt DateTime?
 
     promotedAt    DateTime?
     promotedById  String?
-    promotedBy    User?     @relation("UserPromotion", fields: [promotedById], references: [id])
-    promotedUsers User[]    @relation("UserPromotion")
-
-    sales Sale[]
+    promotedBy    User?        @relation("UserPromotion", fields: [promotedById], references: [id])
+    promotedUsers User[]       @relation("UserPromotion")
+    restockLogs   RestockLog[]
 }
 
 model Branch {
@@ -39,6 +38,9 @@ model Branch {
 
     inventory Inventory[]
     sales     Sale[]
+
+    outgoingRestocks RestockLog[] @relation("FromBranch")
+    incomingRestocks RestockLog[] @relation("ToBranch")
 }
 
 model Product {
@@ -48,8 +50,9 @@ model Product {
     price       Decimal  @db.Decimal(10, 2)
     createdAt   DateTime @default(now())
 
-    inventory Inventory[]
-    saleItems SaleItem[]
+    inventory       Inventory[]
+    saleItems       SaleItem[]
+    restockLogItems RestockLogItem[]
 }
 
 model Inventory {
@@ -69,15 +72,12 @@ model Inventory {
 model Sale {
     id              String   @id @default(cuid())
     branchId        String
-    customerId      String
-    customerEmail   String
     totalAmount     Decimal  @db.Decimal(10, 2)
-    mpesaReference  String
+    mpesaReference  String   @unique
     transactionDate DateTime @default(now())
 
-    branch   Branch     @relation(fields: [branchId], references: [id])
-    customer User?      @relation(fields: [customerId], references: [id])
-    items    SaleItem[]
+    branch Branch     @relation(fields: [branchId], references: [id])
+    items  SaleItem[]
 
     @@index([transactionDate])
 }
@@ -92,4 +92,40 @@ model SaleItem {
 
     sale    Sale    @relation(fields: [saleId], references: [id])
     product Product @relation(fields: [productId], references: [id])
+}
+
+model RestockLog {
+    id            String   @id @default(cuid())
+    fromBranchId  String
+    toBranchId    String
+    performedById String
+    notes         String?
+    createdAt     DateTime @default(now())
+
+    // Relations
+    fromBranch  Branch @relation("FromBranch", fields: [fromBranchId], references: [id])
+    toBranch    Branch @relation("ToBranch", fields: [toBranchId], references: [id])
+    performedBy User   @relation(fields: [performedById], references: [id])
+
+    items RestockLogItem[]
+
+    @@index([fromBranchId])
+    @@index([toBranchId])
+    @@index([performedById])
+}
+
+model RestockLogItem {
+    id String @id @default(cuid())
+
+    restockLogId String
+    productId    String
+
+    quantity Int
+
+    // Relations
+    restockLog RestockLog @relation(fields: [restockLogId], references: [id], onDelete: Cascade)
+    product    Product    @relation(fields: [productId], references: [id])
+
+    @@index([restockLogId])
+    @@index([productId])
 }

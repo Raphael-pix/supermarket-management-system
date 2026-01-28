@@ -134,7 +134,6 @@ const getDetailedSales = async (req, res) => {
     const formattedSales = sales.map((sale) => ({
       id: sale.id,
       branch: sale.branch.name,
-      customerEmail: sale.customerEmail,
       totalAmount: parseFloat(sale.totalAmount),
       mpesaReference: sale.mpesaReference,
       transactionDate: sale.transactionDate,

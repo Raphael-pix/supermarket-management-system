@@ -40,10 +40,10 @@ const Receipt = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="spinner border-green-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading receipt...</p>
+          <div className="spinner border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading receipt...</p>
         </div>
       </div>
     );
@@ -51,11 +51,11 @@ const Receipt = () => {
 
   if (error || !receipt) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center ">
         <div className="bg-white rounded-xl p-8 max-w-md text-center shadow-lg">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
-              className="w-8 h-8 text-red-600"
+              className="w-8 h-8 text-primary"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -68,10 +68,8 @@ const Receipt = () => {
               />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">
-            Receipt Not Found
-          </h2>
-          <p className="text-slate-600 mb-6">{error}</p>
+          <h2 className="text-xl font-bold mb-2">Receipt Not Found</h2>
+          <p className="text-muted-foreground mb-6">{error}</p>
           <button onClick={handleNewOrder} className="btn btn-primary">
             Back to POS
           </button>
@@ -108,17 +106,17 @@ const Receipt = () => {
         }
       `}</style>
 
-      <div className="min-h-screen bg-slate-50 py-8">
+      <div className="min-h-screen  py-8">
         <div className="container mx-auto px-4 max-w-2xl">
           {/* Success Banner - No Print */}
-          <div className="no-print bg-green-50 border-2 border-green-200 rounded-xl p-6 mb-6 text-center">
-            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="no-print bg-accent border-2 border-border rounded-xl p-6 mb-6 text-center">
+            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-green-900 mb-2">
+            <h2 className="text-2xl font-bold text-secondary-dark mb-2">
               Transaction Complete!
             </h2>
-            <p className="text-green-700">Payment received successfully</p>
+            <p>Payment received successfully</p>
           </div>
 
           {/* Action Buttons - No Print */}
@@ -139,47 +137,47 @@ const Receipt = () => {
             className="bg-white rounded-xl shadow-lg p-8 print-full-width"
           >
             {/* Header */}
-            <div className="text-center mb-8 pb-6 border-b-2 border-slate-200">
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+            <div className="text-center mb-8 pb-6 border-b-2 border-border">
+              <h1 className="text-3xl font-bold mb-2">
                 Soft Drinks Distribution
               </h1>
-              <p className="text-xl font-semibold text-green-600 mb-1">
+              <p className="text-xl font-semibold text-primary mb-1">
                 {receipt.branch}
               </p>
-              <p className="text-sm text-slate-600">{receipt.location}</p>
+              <p className="text-sm text-muted-foreground">
+                {receipt.location}
+              </p>
             </div>
 
             {/* Transaction Details */}
             <div className="mb-8 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Transaction Ref:</span>
-                <span className="font-mono font-semibold text-slate-900">
+                <span className="text-muted-foreground">Transaction Ref:</span>
+                <span className="font-mono font-semibold">
                   {receipt.transactionRef}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Date & Time:</span>
-                <span className="font-semibold text-slate-900">
+                <span className="text-muted-foreground">Date & Time:</span>
+                <span className="font-semibold">
                   {formatDateTime(receipt.date)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Payment Method:</span>
-                <span className="font-semibold text-slate-900">
-                  {receipt.paymentMethod}
-                </span>
+                <span className="text-muted-foreground">Payment Method:</span>
+                <span className="font-semibold">{receipt.paymentMethod}</span>
               </div>
             </div>
 
             {/* Items */}
             <div className="mb-8">
-              <h3 className="font-semibold text-slate-900 mb-4 pb-2 border-b border-slate-200">
+              <h3 className="font-semibold mb-4 pb-2 border-b border-border">
                 Items Purchased
               </h3>
 
               <table className="w-full">
                 <thead>
-                  <tr className="text-left text-sm text-slate-600 border-b border-slate-200">
+                  <tr className="text-left text-sm text-muted-foreground border-b border-border">
                     <th className="pb-2">Item</th>
                     <th className="pb-2 text-center">Qty</th>
                     <th className="pb-2 text-right">Price</th>
@@ -188,15 +186,15 @@ const Receipt = () => {
                 </thead>
                 <tbody>
                   {receipt.items.map((item, index) => (
-                    <tr key={index} className="border-b border-slate-100">
-                      <td className="py-3 text-slate-900">{item.name}</td>
+                    <tr key={index} className="border-b border-border">
+                      <td className="py-3">{item.name}</td>
                       <td className="py-3 text-center font-semibold">
                         {item.quantity}
                       </td>
-                      <td className="py-3 text-right text-slate-600">
+                      <td className="py-3 text-right text-muted-foreground">
                         {formatCurrency(item.price)}
                       </td>
-                      <td className="py-3 text-right font-semibold text-slate-900">
+                      <td className="py-3 text-right font-semibold">
                         {formatCurrency(item.subtotal)}
                       </td>
                     </tr>
@@ -206,34 +204,32 @@ const Receipt = () => {
             </div>
 
             {/* Total */}
-            <div className="border-t-2 border-slate-300 pt-4 mb-8">
+            <div className="border-t-2 border-border pt-4 mb-8">
               <div className="flex justify-between items-center">
-                <span className="text-xl font-semibold text-slate-900">
-                  TOTAL PAID
-                </span>
-                <span className="text-3xl font-bold text-green-600">
+                <span className="text-xl font-semibold">TOTAL PAID</span>
+                <span className="text-3xl font-bold text-primary">
                   {formatCurrency(receipt.total)}
                 </span>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="text-center pt-6 border-t border-slate-200">
-              <p className="text-sm text-slate-600 mb-2">
+            <div className="text-center pt-6 border-t border-border">
+              <p className="text-sm text-muted-foreground mb-2">
                 Thank you for your purchase!
               </p>
               <p className="text-xs text-slate-500">
                 For support, please contact your branch
               </p>
-              <p className="text-xs text-slate-400 mt-4">
+              <p className="text-xs text-muted-foreground mt-4">
                 Powered by Soft Drinks Distribution System
               </p>
             </div>
 
             {/* QR Code Placeholder (optional) */}
             <div className="mt-6 flex justify-center">
-              <div className="w-32 h-32 bg-slate-100 rounded-lg flex items-center justify-center">
-                <span className="text-xs text-slate-400">QR Code</span>
+              <div className="w-32 h-32 bg-accent rounded-lg flex items-center justify-center">
+                <span className="text-xs text-muted-foreground">QR Code</span>
               </div>
             </div>
           </div>

@@ -15,10 +15,8 @@ const RecentTransactions = ({ data, loading }) => {
   return (
     <div className="card">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-slate-900">
-          Recent Transactions
-        </h3>
-        <p className="text-sm text-slate-500 mt-1">
+        <h3 className="text-lg font-semibold">Recent Transactions</h3>
+        <p className="text-sm text-muted-foreground mt-1">
           Latest customer purchases across all branches
         </p>
       </div>
@@ -30,7 +28,6 @@ const RecentTransactions = ({ data, loading }) => {
               <th className="table-header-cell">Transaction ID</th>
               <th className="table-header-cell">Date & Time</th>
               <th className="table-header-cell">Branch</th>
-              <th className="table-header-cell">Customer</th>
               <th className="table-header-cell">Items</th>
               <th className="table-header-cell">Amount</th>
               <th className="table-header-cell">M-Pesa Ref</th>
@@ -41,7 +38,7 @@ const RecentTransactions = ({ data, loading }) => {
               <tr>
                 <td
                   colSpan="7"
-                  className="table-cell text-center text-slate-500 py-8"
+                  className="table-cell text-center text-muted-foreground py-8"
                 >
                   No transactions found
                 </td>
@@ -49,7 +46,7 @@ const RecentTransactions = ({ data, loading }) => {
             ) : (
               data.map((transaction) => (
                 <tr key={transaction.id} className="table-row-hover">
-                  <td className="table-cell font-mono text-xs text-slate-600">
+                  <td className="table-cell font-mono text-xs text-secondary-foreground">
                     {transaction.id.substring(0, 8)}...
                   </td>
                   <td className="table-cell text-sm">
@@ -60,28 +57,25 @@ const RecentTransactions = ({ data, loading }) => {
                       {transaction.branch}
                     </span>
                   </td>
-                  <td className="table-cell text-sm text-slate-600">
-                    {transaction.customerEmail}
-                  </td>
                   <td className="table-cell">
                     <div className="text-sm">
                       {transaction.items.slice(0, 2).map((item, idx) => (
-                        <div key={idx} className="text-slate-600">
+                        <div key={idx} className="text-secondary-foreground">
                           {item.quantity}x {item.product}
                         </div>
                       ))}
                       {transaction.items.length > 2 && (
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-muted-foreground">
                           +{transaction.items.length - 2} more
                         </div>
                       )}
                     </div>
                   </td>
-                  <td className="table-cell font-semibold text-slate-900">
+                  <td className="table-cell font-semibold ">
                     {formatCurrency(transaction.amount)}
                   </td>
                   <td className="table-cell">
-                    <span className="font-mono text-xs text-slate-600">
+                    <span className="font-mono text-xs text-secondary-foreground">
                       {transaction.mpesaReference}
                     </span>
                   </td>
@@ -93,7 +87,7 @@ const RecentTransactions = ({ data, loading }) => {
       </div>
 
       {data.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-slate-200">
+        <div className="mt-4 pt-4 border-t border-border">
           <button className="btn btn-ghost btn-sm">
             View All Transactions
             <ExternalLink className="w-4 h-4" />

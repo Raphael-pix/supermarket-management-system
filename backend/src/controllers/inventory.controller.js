@@ -96,7 +96,7 @@ const restockBranch = async (req, res) => {
     // or 'products' array if sent as bulk.
     // This handles both the dashboard form and bulk uploads.
     let { branchId, productId, quantity, products } = req.body;
-    
+
     // Support the "toBranchId" naming if the frontend sends that
     const targetBranchId = branchId || req.body.toBranchId;
 
@@ -127,45 +127,104 @@ const restockBranch = async (req, res) => {
     }
 
     const updates = [];
+    for (const item of products) {
+      const { productId, quantity } = item;
 
-    // Process updates using UPSERT (Critical Fix)
-    // This creates the inventory record if it doesn't exist, preventing 500 errors.
-    for (const item of itemsToUpdate) {
-      const q = parseInt(item.quantity);
-      
-      if (q > 0) {
-        const result = await prisma.inventory.upsert({
-          where: {
-            branchId_productId: {
-              branchId: targetBranchId,
-              productId: item.productId,
-            },
-          },
-          update: {
-            quantity: { increment: q },
-            lastRestocked: new Date(),
-          },
-          create: {
-            branchId: targetBranchId,
-            productId: item.productId,
-            quantity: q,
-            lastRestocked: new Date(),
-            lowStockThreshold: 10, // Default threshold
-          },
+      if (!productId || !quantity || quantity <= 0) {
+        return res.status(400).json({
+          error: "Each product must have productId and positive quantity",
         });
-        updates.push(result);
       }
+
+      // Check HQ has enough stock
+      const hqInventory = await prisma.inventory.findUnique({
+        where: {
+          branchId_productId: {
+            branchId: hqBranch.id,
+            productId: productId,
+          },
+        },
+      });
+
+      if (!hqInventory || hqInventory.quantity < quantity) {
+        const product = await prisma.product.findUnique({
+          where: { id: productId },
+        });
+        return res.status(400).json({
+          error: `Insufficient stock in HQ for ${product?.name || "product"}. Available: ${hqInventory?.quantity || 0}`,
+        });
+      }
+
+      // Deduct from HQ
+      await prisma.inventory.update({
+        where: {
+          branchId_productId: {
+            branchId: hqBranch.id,
+            productId: productId,
+          },
+        },
+        data: {
+          quantity: {
+            decrement: quantity,
+          },
+        },
+      });
+
+      // Add to target branch
+      await prisma.inventory.update({
+        where: {
+          branchId_productId: {
+            branchId: toBranchId,
+            productId: productId,
+          },
+        },
+        data: {
+          quantity: {
+            increment: quantity,
+          },
+          lastRestocked: new Date(),
+        },
+      });
+
+      updates.push({ productId, quantity });
     }
 
-    res.json({
-      success: true,
-      message: `Successfully restocked ${updates.length} products to ${targetBranch.name}`,
-      data: updates
+    // Log the restock operation
+    const restockLog = await prisma.restockLog.create({
+      data: {
+        fromBranchId: hqBranch.id,
+        toBranchId,
+        performedById: performedBy,
+        notes,
+        items: {
+          create: products.map((p) => ({
+            productId: p.productId,
+            quantity: p.quantity,
+          })),
+        },
+      },
+      include: {
+        items: {
+          include: { product: true },
+        },
+      },
     });
 
+    res.json({
+      message: "Restock completed successfully",
+      restockLog: {
+        id: restockLog.id,
+        fromBranch: hqBranch.name,
+        toBranch: targetBranch.name,
+        products: updates,
+        performedAt: restockLog.createdAt,
+      },
+    });
   } catch (error) {
     console.error("Restock error:", error);
-    res.status(500).json({ error: "Failed to complete restock: " + error.message });
+    res
+      .status(500)
+      .json({ error: "Failed to complete restock: " + error.message });
   }
 };
 
@@ -175,12 +234,12 @@ const restockBranch = async (req, res) => {
  */
 const getLowStock = async (req, res) => {
   try {
-    // If you haven't run a migration for lowStockThreshold yet, 
+    // If you haven't run a migration for lowStockThreshold yet,
     // this query might fail. We wrap it safely.
     const lowStockItems = await prisma.inventory.findMany({
       where: {
         // We use a hardcoded check or verify field exists to prevent crashes
-        quantity: { lt: 10 }, 
+        quantity: { lt: 10 },
       },
       include: {
         branch: { select: { name: true } },
@@ -203,7 +262,7 @@ const getLowStock = async (req, res) => {
   } catch (error) {
     console.error("Low stock error:", error);
     // Return empty array instead of crashing if query fails
-    res.json([]); 
+    res.json([]);
   }
 };
 

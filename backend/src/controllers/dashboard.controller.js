@@ -155,7 +155,6 @@ const getRecentTransactions = async (req, res) => {
       id: sale.id,
       date: sale.transactionDate,
       branch: sale.branch.name,
-      customerEmail: sale.customerEmail,
       amount: parseFloat(sale.totalAmount),
       mpesaReference: sale.mpesaReference,
       items: sale.items.map((item) => ({

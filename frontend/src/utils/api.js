@@ -50,7 +50,7 @@ export const usersAPI = {
   getAllUsers: (params) => api.get("/users", { params }),
   getUserStats: () => api.get("/users/stats"),
   promoteToAdmin: (userId) => api.post(`/users/${userId}/promote`),
-  demoteToCustomer: (userId) => api.post(`/users/${userId}/demote`),
+  demoteToUser: (userId) => api.post(`/users/${userId}/demote`),
 };
 
 export default api;

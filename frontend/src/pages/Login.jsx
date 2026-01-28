@@ -20,7 +20,7 @@ const Login = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setError(""); // Clear error when user types
+    setError("");
   };
 
   const handleSubmit = async (e) => {
@@ -31,7 +31,6 @@ const Login = () => {
     const result = await login(formData.email, formData.password);
 
     if (result.success) {
-      // Redirect based on role
       if (result.user.role === "ADMIN") {
         navigate("/admin/dashboard");
       } else {
@@ -45,27 +44,32 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+    <div className="min-h-screen overflow-hidden grid grid-cols-1 md:grid-cols-2">
+      <div className="hidden md:block relative m-8 rounded-xl">
+        <img
+          src="/images/auth-drinks.jpg"
+          alt="Soft drinks"
+          className="absolute inset-0 w-full h-full object-cover rounded-xl"
+        />
+        <div className="absolute inset-0 flex items-end p-6 ">
+          <p className="text-white text-xl font-semibold w-full text-right">
+            Refresh your sales experience
+          </p>
+        </div>
       </div>
 
-      <div className="relative z-10 w-full max-w-md px-6">
-        {/* Logo and branding */}
+      <div className="relative z-10 w-full max-w-md px-6 my-auto lg:mx-16">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg bg-coca-red">
             <Store className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Supermarket Admin
-          </h1>
-          <p className="text-slate-600">Sign in to access your dashboard</p>
+          <h1 className="text-3xl font-bold mb-2">SoftSpree</h1>
+          <p className="text-muted-foreground">
+            Sign in to access your dashboard
+          </p>
         </div>
 
-        {/* Login form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-card card rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="alert alert-danger">
@@ -74,10 +78,7 @@ const Login = () => {
             )}
 
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-slate-700 mb-2"
-              >
+              <label htmlFor="email" className="block text-sm font-medium mb-2">
                 Email Address
               </label>
               <input
@@ -96,7 +97,7 @@ const Login = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-slate-700 mb-2"
+                className="block text-sm font-medium mb-2"
               >
                 Password
               </label>
@@ -115,7 +116,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-dark"
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -134,36 +135,25 @@ const Login = () => {
               {loading ? (
                 <>
                   <div className="spinner border-white"></div>
-                  Signing in...
+                  <p>Signing in...</p>
                 </>
               ) : (
-                "Sign In"
+                <p>Sign In</p>
               )}
             </button>
           </form>
         </div>
 
-        {/* Additional info */}
         <div className="mt-8 text-center">
-          <p className="text-sm text-slate-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Don't have an account?{" "}
             <Link
               to="/sign-up"
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-coca-red hover:text-coca-red-dark font-medium"
             >
               Sign up here
             </Link>
           </p>
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
-            <p className="text-sm text-blue-900 mb-2">
-              <strong>Note:</strong> New sign-ups create customer accounts by
-              default.
-            </p>
-            <p className="text-xs text-blue-700">
-              Admin access must be granted by an existing administrator.
-            </p>
-          </div>
         </div>
       </div>
     </div>
