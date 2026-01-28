@@ -105,39 +105,39 @@ const ProductSelection = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="spinner border-green-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading products...</p>
+          <div className="spinner border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading products...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+      <div className="bg-white border-b border-border sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate("/pos")}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-muted rounded-lg transition-colors"
               >
-                <ArrowLeft className="w-6 h-6 text-slate-600" />
+                <ArrowLeft className="w-6 h-6 text-muted-foreground" />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">
-                  {branch?.name}
-                </h1>
-                <p className="text-sm text-slate-600">{branch?.location}</p>
+                <h1 className="text-2xl font-bold">{branch?.name}</h1>
+                <p className="text-sm text-muted-foreground">
+                  {branch?.location}
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 bg-green-100 px-4 py-2 rounded-lg">
-              <ShoppingCart className="w-5 h-5 text-green-600" />
-              <span className="font-semibold text-green-900">
+            <div className="flex items-center gap-2 bg-secondary px-4 py-2 rounded-lg">
+              <ShoppingCart className="w-5 h-5 text-secondary-foreground" />
+              <span className="font-semibold text-secondary-foreground">
                 {getTotalItems()} items
               </span>
             </div>
@@ -158,14 +158,12 @@ const ProductSelection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Products Grid */}
           <div className="lg:col-span-2">
-            <h2 className="text-xl font-semibold text-slate-900 mb-4">
-              Available Products
-            </h2>
+            <h2 className="text-xl font-semibold mb-4">Available Products</h2>
 
             {products.length === 0 ? (
               <div className="bg-white rounded-xl p-12 text-center shadow-sm">
-                <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-600">
+                <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">
                   No products available at this branch
                 </p>
               </div>
@@ -174,26 +172,26 @@ const ProductSelection = () => {
                 {products.map((product) => (
                   <div
                     key={product.id}
-                    className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-slate-200"
+                    className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-muted"
                   >
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-lg font-semibold text-slate-900 mb-1">
+                        <h3 className="text-lg font-semibold mb-1">
                           {product.name}
                         </h3>
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-muted-foreground">
                           {product.description}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-green-600">
+                        <p className="text-2xl font-bold text-secondary-foreground">
                           {formatCurrency(product.price)}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600">
+                      <span className="text-sm text-muted-foreground">
                         Stock:{" "}
                         <span className="font-semibold">
                           {product.availableStock}
@@ -217,29 +215,25 @@ const ProductSelection = () => {
           {/* Cart Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-lg sticky top-24">
-              <div className="p-6 border-b border-slate-200">
-                <h2 className="text-xl font-semibold text-slate-900">
-                  Order Summary
-                </h2>
+              <div className="p-6 border-b border-muted">
+                <h2 className="text-xl font-semibold">Order Summary</h2>
               </div>
 
               <div className="p-6 max-h-96 overflow-y-auto">
                 {cart.length === 0 ? (
                   <div className="text-center py-8">
-                    <ShoppingCart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-600">Cart is empty</p>
+                    <ShoppingCart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Cart is empty</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {cart.map((item) => (
                       <div
                         key={item.id}
-                        className="border-b border-slate-200 pb-4 last:border-0"
+                        className="border-b border-muted pb-4 last:border-0"
                       >
                         <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-semibold text-slate-900">
-                            {item.name}
-                          </h4>
+                          <h4 className="font-semibold">{item.name}</h4>
                           <button
                             onClick={() => removeFromCart(item.id)}
                             className="text-red-500 hover:text-red-700"
@@ -252,7 +246,7 @@ const ProductSelection = () => {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => updateQuantity(item.id, -1)}
-                              className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center"
+                              className="w-8 h-8 rounded-lg bg-muted/90 hover:bg-muted flex items-center justify-center"
                             >
                               <Minus className="w-4 h-4" />
                             </button>
@@ -261,12 +255,12 @@ const ProductSelection = () => {
                             </span>
                             <button
                               onClick={() => updateQuantity(item.id, 1)}
-                              className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center"
+                              className="w-8 h-8 rounded-lg bg-muted/90 hover:bg-muted flex items-center justify-center"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
                           </div>
-                          <span className="font-semibold text-slate-900">
+                          <span className="font-semibold">
                             {formatCurrency(item.price * item.quantity)}
                           </span>
                         </div>
@@ -277,12 +271,10 @@ const ProductSelection = () => {
               </div>
 
               {cart.length > 0 && (
-                <div className="p-6 border-t border-slate-200">
+                <div className="p-6 border-t border-muted">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-lg font-semibold text-slate-900">
-                      Total
-                    </span>
-                    <span className="text-2xl font-bold text-green-600">
+                    <span className="text-lg font-semibold">Total</span>
+                    <span className="text-2xl font-bold text-secondary-foreground">
                       {formatCurrency(getCartTotal())}
                     </span>
                   </div>

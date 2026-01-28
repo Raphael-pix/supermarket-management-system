@@ -48,27 +48,25 @@ const BranchSelection = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="spinner border-green-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading branches...</p>
+          <div className="spinner border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading branches...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 py-8">
+    <div className="min-h-screen bg-linear-to-br from-red-50 via-white to-red-100 py-8">
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-3xl mb-6 shadow-lg">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-3xl mb-6 shadow-lg">
             <Store className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">
-            Soft Drinks POS
-          </h1>
-          <p className="text-lg text-slate-600">
+          <h1 className="text-4xl font-bold  mb-3">SoftSpree</h1>
+          <p className="text-lg text-muted-foreground">
             Select your branch to start selling
           </p>
         </div>
@@ -86,15 +84,15 @@ const BranchSelection = () => {
             <button
               key={branch.id}
               onClick={() => handleSelectBranch(branch.id)}
-              className="bg-white rounded-2xl p-8 shadow-lg border-2 border-transparent hover:border-green-500 hover:shadow-xl transition-all duration-200 text-left group"
+              className="bg-white rounded-2xl p-8 shadow-lg border-2 border-transparent hover:border-accent-foreground hover:shadow-xl transition-all duration-200 text-left group"
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-500 transition-colors">
-                  <Store className="w-7 h-7 text-green-600 group-hover:text-white transition-colors" />
+                <div className="w-14 h-14 bg-accent rounded-xl flex items-center justify-center group-hover:bg-accent-foreground transition-colors">
+                  <Store className="w-7 h-7 text-primary group-hover:text-white transition-colors" />
                 </div>
-                <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center group-hover:bg-green-50">
+                <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center group-hover:bg-accent">
                   <svg
-                    className="w-5 h-5 text-slate-400 group-hover:text-green-600"
+                    className="w-5 h-5 text-slate-400 group-hover:text-primary"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -109,11 +107,9 @@ const BranchSelection = () => {
                 </div>
               </div>
 
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">
-                {branch.name}
-              </h3>
+              <h3 className="text-2xl font-bold mb-2">{branch.name}</h3>
 
-              <div className="flex items-center text-slate-600">
+              <div className="flex items-center text-muted-foreground">
                 <MapPin className="w-4 h-4 mr-2" />
                 <p className="text-sm">{branch.location}</p>
               </div>
@@ -123,14 +119,14 @@ const BranchSelection = () => {
 
         {branches.length === 0 && !loading && !error && (
           <div className="text-center py-12">
-            <p className="text-slate-600">No branches available</p>
+            <p className="text-muted-foreground">No branches available</p>
           </div>
         )}
 
         {/* Footer */}
         <div className="mt-12 text-center">
-          <p className="text-sm text-slate-500">
-            Powered by Soft Drinks Distribution System
+          <p className="text-sm text-muted-foreground">
+            Powered by SoftSpree Distribution System
           </p>
         </div>
       </div>
