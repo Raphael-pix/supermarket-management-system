@@ -3,10 +3,6 @@ import mpesaService from "../services/mpesa.service.js";
 
 const prisma = new PrismaClient();
 
-/**
- * GET /api/pos/branches
- * Get all available branches for POS
- */
 const getBranches = async (req, res) => {
   try {
     const branches = await prisma.branch.findMany({
@@ -22,20 +18,15 @@ const getBranches = async (req, res) => {
 
     res.json(branches);
   } catch (error) {
-    console.error("Get branches error:", error);
+    console.error(error);
     res.status(500).json({ error: "Failed to fetch branches" });
   }
 };
 
-/**
- * GET /api/pos/branches/:branchId/products
- * Get available products with stock for a specific branch
- */
 const getBranchProducts = async (req, res) => {
   try {
     const { branchId } = req.params;
 
-    // Verify branch exists
     const branch = await prisma.branch.findUnique({
       where: { id: branchId },
     });
@@ -44,11 +35,10 @@ const getBranchProducts = async (req, res) => {
       return res.status(404).json({ error: "Branch not found" });
     }
 
-    // Get products with inventory for this branch
     const inventory = await prisma.inventory.findMany({
       where: {
         branchId: branchId,
-        quantity: { gt: 0 }, // Only show products with stock
+        quantity: { gt: 0 },
       },
       include: {
         product: {
@@ -84,27 +74,21 @@ const getBranchProducts = async (req, res) => {
       products,
     });
   } catch (error) {
-    console.error("Get branch products error:", error);
+    console.error(error);
     res.status(500).json({ error: "Failed to fetch products" });
   }
 };
 
-/**
- * POST /api/pos/order/preview
- * Preview order total and validate stock
- */
 const previewOrder = async (req, res) => {
   try {
     const { branchId, items } = req.body;
 
-    // Validation
     if (!branchId || !items || !Array.isArray(items) || items.length === 0) {
       return res
         .status(400)
         .json({ error: "Branch ID and items are required" });
     }
 
-    // Verify branch exists
     const branch = await prisma.branch.findUnique({
       where: { id: branchId },
     });
@@ -116,7 +100,6 @@ const previewOrder = async (req, res) => {
     const orderItems = [];
     let total = 0;
 
-    // Validate each item and check stock
     for (const item of items) {
       const { productId, quantity } = item;
 
@@ -124,7 +107,6 @@ const previewOrder = async (req, res) => {
         return res.status(400).json({ error: "Invalid item data" });
       }
 
-      // Get product and inventory
       const product = await prisma.product.findUnique({
         where: { id: productId },
       });
@@ -173,25 +155,19 @@ const previewOrder = async (req, res) => {
       total: total,
     });
   } catch (error) {
-    console.error("Preview order error:", error);
+    console.error(error);
     res.status(500).json({ error: "Failed to preview order" });
   }
 };
 
-/**
- * POST /api/pos/payment/initiate
- * Initiate M-Pesa STK Push
- */
 const initiatePayment = async (req, res) => {
   try {
     const { branchId, phoneNumber, items, totalAmount } = req.body;
 
-    // Validation
     if (!branchId || !phoneNumber || !items || !totalAmount) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // Verify branch exists
     const branch = await prisma.branch.findUnique({
       where: { id: branchId },
     });
@@ -200,13 +176,11 @@ const initiatePayment = async (req, res) => {
       return res.status(404).json({ error: "Branch not found" });
     }
 
-    // Generate unique transaction reference
     const transactionRef =
       "POS" +
       Date.now() +
       Math.random().toString(36).substring(7).toUpperCase();
 
-    // Initiate M-Pesa STK Push
     const mpesaResponse = await mpesaService.initiateSTKPush(
       phoneNumber,
       totalAmount,
@@ -220,9 +194,6 @@ const initiatePayment = async (req, res) => {
       });
     }
 
-    // Store pending payment info in database for callback processing
-    // We'll use the Sale model with a pending status indicator
-    // For now, return the checkout request ID for polling
     res.json({
       success: true,
       transactionRef: transactionRef,
@@ -232,15 +203,11 @@ const initiatePayment = async (req, res) => {
         "Payment request sent. Please enter your M-Pesa PIN on your phone.",
     });
   } catch (error) {
-    console.error("Initiate payment error:", error);
+    console.error(error);
     res.status(500).json({ error: "Failed to initiate payment" });
   }
 };
 
-/**
- * POST /api/pos/payment/callback
- * M-Pesa callback endpoint (called by Safaricom)
- */
 const paymentCallback = async (req, res) => {
   try {
     console.log(
@@ -255,38 +222,28 @@ const paymentCallback = async (req, res) => {
       return res.status(400).json({ error: validation.error });
     }
 
-    // Acknowledge callback immediately
     res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
 
-    // Process payment asynchronously
     if (validation.success) {
       console.log("✅ Payment successful:", {
         mpesaRef: validation.mpesaReceiptNumber,
         amount: validation.amount,
         phone: validation.phoneNumber,
       });
-
-      // Payment will be confirmed via polling or webhook
-      // The actual sale creation happens in confirmPayment function
     } else {
       console.log("❌ Payment failed:", validation.resultDesc);
     }
   } catch (error) {
-    console.error("Payment callback error:", error);
+    console.error(error);
     res.status(500).json({ error: "Callback processing failed" });
   }
 };
 
-/**
- * POST /api/pos/payment/confirm
- * Confirm payment and create sale (called by frontend after STK Push)
- */
 const confirmPayment = async (req, res) => {
   try {
     const { checkoutRequestId, branchId, phoneNumber, items, totalAmount } =
       req.body;
 
-    // Query M-Pesa for payment status
     const paymentStatus =
       await mpesaService.querySTKPushStatus(checkoutRequestId);
 
@@ -297,30 +254,30 @@ const confirmPayment = async (req, res) => {
       });
     }
 
-    // Generate unique M-Pesa reference (in production, this comes from callback)
     const mpesaReference =
       "MPX" +
       Date.now() +
       Math.random().toString(36).substring(7).toUpperCase();
 
-    // Use database transaction to ensure atomicity
+    const defaultUser = await prisma.user.findFirst();
+    
+    if (!defaultUser) {
+        return res.status(500).json({ success: false, error: "System Error: No valid admin/user found to link sale." });
+    }
+
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Create sale
       const sale = await tx.sale.create({
         data: {
           branchId: branchId,
-          customerId: "POS_CUSTOMER", // No customer account for POS
-          customerEmail: phoneNumber + "@pos.local", // Use phone as identifier
+          customerId: defaultUser.id,
+          customerEmail: phoneNumber + "@pos.local",
           totalAmount: totalAmount,
-          paymentMethod: "MPESA",
           mpesaReference: mpesaReference,
           transactionDate: new Date(),
         },
       });
 
-      // 2. Create sale items and deduct inventory
       for (const item of items) {
-        // Create sale item
         await tx.saleItem.create({
           data: {
             saleId: sale.id,
@@ -331,7 +288,6 @@ const confirmPayment = async (req, res) => {
           },
         });
 
-        // Deduct from inventory
         await tx.inventory.update({
           where: {
             branchId_productId: {
@@ -357,9 +313,8 @@ const confirmPayment = async (req, res) => {
       message: "Payment confirmed and sale recorded",
     });
   } catch (error) {
-    console.error("Confirm payment error:", error);
+    console.error(error);
 
-    // Check for insufficient stock error
     if (error.code === "P2025") {
       return res.status(400).json({
         success: false,
@@ -369,15 +324,11 @@ const confirmPayment = async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: "Failed to confirm payment",
+      error: "Failed to confirm payment: " + error.message,
     });
   }
 };
 
-/**
- * GET /api/pos/receipt/:transactionRef
- * Get receipt details for a transaction
- */
 const getReceipt = async (req, res) => {
   try {
     const { transactionRef } = req.params;
@@ -421,12 +372,12 @@ const getReceipt = async (req, res) => {
         subtotal: parseFloat(item.subtotal),
       })),
       total: parseFloat(sale.totalAmount),
-      paymentMethod: sale.paymentMethod,
+      paymentMethod: "MPESA", 
     };
 
     res.json(receipt);
   } catch (error) {
-    console.error("Get receipt error:", error);
+    console.error(error);
     res.status(500).json({ error: "Failed to fetch receipt" });
   }
 };
