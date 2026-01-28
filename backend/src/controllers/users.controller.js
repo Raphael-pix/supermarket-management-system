@@ -49,14 +49,13 @@ const getAllUsers = async (req, res) => {
 
 /**
  * POST /api/users/:userId/promote
- * Promote a customer to admin
+ * Promote a user to admin
  */
 const promoteToAdmin = async (req, res) => {
   try {
     const { userId } = req.params;
-    const performedBy = req.userId; // From auth middleware
+    const performedBy = req.userId;
 
-    // Find user to promote
     const userToPromote = await prisma.user.findUnique({
       where: { id: userId },
     });
@@ -103,7 +102,6 @@ const demoteToCustomer = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Find user to demote
     const userToDemote = await prisma.user.findUnique({
       where: { id: userId },
     });
@@ -116,7 +114,6 @@ const demoteToCustomer = async (req, res) => {
       return res.status(400).json({ error: "User is not an admin" });
     }
 
-    // Check if this is the last admin
     const adminCount = await prisma.user.count({
       where: { role: "ADMIN" },
     });
@@ -133,12 +130,10 @@ const demoteToCustomer = async (req, res) => {
         error: "You cannot demote yourself",
       });
     }
-
-    // Update user role in database
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        role: "CUSTOMER",
+        role: "USER",
         promotedBy: null,
         promotedAt: null,
       },
@@ -150,7 +145,7 @@ const demoteToCustomer = async (req, res) => {
     });
 
     res.json({
-      message: "User demoted to customer successfully",
+      message: "User demoted to user successfully",
       user: updatedUser,
     });
   } catch (error) {
@@ -168,10 +163,9 @@ const getUserStats = async (req, res) => {
     const totalUsers = await prisma.user.count();
     const adminCount = await prisma.user.count({ where: { role: "ADMIN" } });
     const customerCount = await prisma.user.count({
-      where: { role: "CUSTOMER" },
+      where: { role: "USER" },
     });
 
-    // Recent sign-ups (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 

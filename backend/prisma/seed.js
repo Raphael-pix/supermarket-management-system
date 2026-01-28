@@ -55,7 +55,6 @@ async function main() {
   ]);
   console.log(`✅ Created ${branches.length} branches`);
 
-  // Create products with uniform pricing
   console.log("🥤 Creating products...");
   const products = await Promise.all([
     prisma.product.upsert({
@@ -63,7 +62,7 @@ async function main() {
       update: {},
       create: {
         name: "Coke",
-        price: 80.0, // KES 80
+        price: 80.0,
         description: "Coca-Cola 500ml",
       },
     }),
@@ -72,7 +71,7 @@ async function main() {
       update: {},
       create: {
         name: "Fanta",
-        price: 75.0, // KES 75
+        price: 75.0,
         description: "Fanta Orange 500ml",
       },
     }),
@@ -81,14 +80,13 @@ async function main() {
       update: {},
       create: {
         name: "Sprite",
-        price: 75.0, // KES 75
+        price: 75.0,
         description: "Sprite 500ml",
       },
     }),
   ]);
   console.log(`✅ Created ${products.length} products`);
 
-  // Create inventory for each branch-product combination
   console.log("📦 Creating inventory...");
   const inventoryData = [];
   for (const branch of branches) {

@@ -1,16 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("🌱 Seeding database...");
 
-  // Clear existing data (order matters)
   await prisma.sale.deleteMany();
   await prisma.user.deleteMany();
-
-  // Hash password
   const password = await bcrypt.hash("password123", 10);
 
   // -------------------------
@@ -21,7 +19,7 @@ async function main() {
       {
         email: "admin1@example.com",
         firstName: "Alice",
-        lastName: "Admin",
+        lastName: "Ankle",
         password,
         role: "ADMIN",
       },
@@ -38,9 +36,9 @@ async function main() {
   console.log("✅ Admins created");
 
   // -------------------------
-  // CUSTOMERS
+  // Default Users
   // -------------------------
-  const customersData = [
+  const usersData = [
     {
       email: "john@example.com",
       firstName: "John",
@@ -53,49 +51,37 @@ async function main() {
       lastName: "Smith",
       password,
     },
-    {
-      email: "mike@example.com",
-      firstName: "Mike",
-      lastName: "Johnson",
-      password,
-    },
-    {
-      email: "susan@example.com",
-      firstName: "Susan",
-      lastName: "Wambui",
-      password,
-    },
   ];
 
-  const customers = [];
+  const users = [];
 
-  for (const customer of customersData) {
-    const createdCustomer = await prisma.user.create({
+  for (const user of usersData) {
+    const createdUser = await prisma.user.create({
       data: {
-        ...customer,
-        role: "CUSTOMER",
+        ...user,
+        role: "USER",
       },
     });
-    customers.push(createdCustomer);
+    users.push(createdUser);
   }
 
-  console.log("✅ Customers created");
+  console.log("✅ users created");
 
   // -------------------------
-  // SALES (linked to customers)
+  // SALES (linked to users)
   // -------------------------
   const salesData = [];
 
-  for (const customer of customers) {
+  const branches = await prisma.branch.findMany();
+
+  for (const branch of branches) {
     const numberOfSales = Math.floor(Math.random() * 5) + 1;
 
     for (let i = 0; i < numberOfSales; i++) {
       salesData.push({
         totalAmount: parseFloat((Math.random() * 5000 + 500).toFixed(2)),
-        customerId: customer.id,
-        branchId: "cmkwl9m4r0000tk6c186d8ask",
-        customerEmail: customer.email,
-        mpesaReference: "UARQE4WKGD",
+        branchId: branch.id,
+        mpesaReference: crypto.randomUUID(),
         transactionDate: new Date(
           Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000,
         ),
