@@ -15,7 +15,7 @@ const SalesLineChart = ({ data, loading }) => {
     return (
       <div className="card">
         <div className="h-80 flex items-center justify-center">
-          <div className="spinner border-blue-600"></div>
+          <div className="spinner border-primary"></div>
         </div>
       </div>
     );
@@ -24,13 +24,13 @@ const SalesLineChart = ({ data, loading }) => {
   return (
     <div className="card">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-slate-900">Sales Trend</h3>
-        <p className="text-sm text-slate-500 mt-1">
+        <h3 className="text-lg font-semibold">Sales Trend</h3>
+        <p className="text-sm text-muted-foreground mt-1">
           Daily sales over the past 30 days
         </p>
       </div>
 
-      <ResponsiveContainer width="100%" height={320}>
+      <ResponsiveContainer width="100%" height={320} className="px-2 text-sm">
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
           <XAxis

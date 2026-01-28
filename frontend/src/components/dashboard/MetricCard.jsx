@@ -21,11 +21,13 @@ const MetricCard = ({
     <div className="card card-hover">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-slate-600 mb-1">{title}</p>
+          <p className="text-sm font-medium text-muted-foreground mb-1">
+            {title}
+          </p>
           {loading ? (
-            <div className="h-8 bg-slate-200 rounded animate-pulse w-32"></div>
+            <div className="h-8 bg-muted rounded animate-pulse w-32"></div>
           ) : (
-            <p className="text-3xl font-bold text-slate-900 mb-2">{value}</p>
+            <p className="text-3xl font-bold  mb-2">{value}</p>
           )}
 
           {trend && trendValue && (
@@ -42,7 +44,9 @@ const MetricCard = ({
               >
                 {trendValue}
               </span>
-              <span className="text-sm text-slate-500">vs last period</span>
+              <span className="text-sm text-muted-foreground">
+                vs last period
+              </span>
             </div>
           )}
         </div>

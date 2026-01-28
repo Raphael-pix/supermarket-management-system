@@ -1,0 +1,289 @@
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-geist: Geist, sans-serif;
+
+  /* Brand */
+  --color-coca-red: #e41c2d;
+  --color-coca-red-dark: #b3131f;
+
+  /* Backgrounds */
+  --color-background: #ffffff;
+  --color-background-dark: #0f0f0f;
+
+  /* Foreground */
+  --color-foreground: #1f1f1f;
+  --color-foreground-dark: #f5f5f5;
+
+  /* Cards */
+  --color-card: #ffffff;
+  --color-card-dark: #1a1a1a;
+
+  --color-card-foreground: #1f1f1f;
+  --color-card-foreground-dark: #f5f5f5;
+
+  /* Popovers */
+  --color-popover: #ffffff;
+  --color-popover-dark: #1a1a1a;
+
+  --color-popover-foreground: #1f1f1f;
+  --color-popover-foreground-dark: #f5f5f5;
+
+  /* Primary (Coca-Cola Red) */
+  --color-primary: #e41c2d;
+  --color-primary-dark: #ff4d5a;
+
+  --color-primary-foreground: #ffffff;
+  --color-primary-foreground-dark: #ffffff;
+
+  /* Secondary (Neutral Grey) */
+  --color-secondary: #f4f4f5;
+  --color-secondary-dark: #2a2a2a;
+
+  --color-secondary-foreground: #1f1f1f;
+  --color-secondary-foreground-dark: #f4f4f5;
+
+  /* Muted */
+  --color-muted: #f7f7f8;
+  --color-muted-dark: #2d2d2d;
+
+  --color-muted-foreground: #6b6b6b;
+  --color-muted-foreground-dark: #a0a0a0;
+
+  /* Accent (Soft Coca Red Tint) */
+  --color-accent: #fdebec;
+  --color-accent-dark: #3a1b1f;
+
+  --color-accent-foreground: #b3131f;
+  --color-accent-foreground-dark: #ff9aa3;
+
+  /* Destructive */
+  --color-destructive: #c1121f;
+  --color-destructive-dark: #ff4d4d;
+
+  --color-destructive-foreground: #ffffff;
+  --color-destructive-foreground-dark: #ffffff;
+
+  /* Borders & Inputs */
+  --color-border: #e5e7eb;
+  --color-input: #e5e7eb;
+  --color-ring: #6b6b6b;
+
+  --color-border-dark: #333333;
+  --color-input-dark: #333333;
+  --color-ring-dark: #a0a0a0;
+
+  /* Radius */
+  --radius-radius: 0.75rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 20px rgba(228, 28, 45, 0.2);
+
+  --shadow-sm-dark: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md-dark:
+    0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg-dark:
+    0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-glow-dark: 0 0 20px rgba(255, 77, 90, 0.25);
+}
+
+body {
+  @apply bg-background text-foreground font-geist antialiased;
+  font-feature-settings:
+    "rlig" 1,
+    "calt" 1;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-semibold tracking-tight;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.transition-smooth {
+  @apply transition-all duration-200 ease-out;
+}
+
+.card {
+  @apply bg-card text-card-foreground rounded-xl shadow-sm border border-border p-6;
+}
+
+.card-hover {
+  @apply transition-all duration-200 hover:shadow-md hover:border-muted-foreground/30;
+}
+.btn {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-ring;
+}
+
+.btn-primary {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80;
+}
+
+.btn-secondary {
+  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/70;
+}
+
+.btn-outline {
+  @apply border-2 border-border bg-background text-foreground hover:bg-muted hover:border-muted-foreground;
+}
+
+.btn-ghost {
+  @apply text-muted-foreground hover:bg-muted hover:text-foreground;
+}
+
+.btn-destructive {
+  @apply bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80;
+}
+
+.btn-sm {
+  @apply px-3 py-1.5 text-sm;
+}
+
+.btn-lg {
+  @apply px-6 py-3 text-lg;
+}
+
+.input {
+  @apply w-full px-4 py-2 rounded-lg border border-input bg-background text-foreground
+         placeholder:text-muted-foreground
+         focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent
+         transition-all;
+}
+
+.input-error {
+  @apply border-destructive focus:ring-destructive;
+}
+
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-success {
+  @apply bg-green-100 text-green-800;
+}
+
+.badge-warning {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.badge-danger {
+  @apply bg-destructive/10 text-destructive;
+}
+
+.badge-info {
+  @apply bg-secondary text-secondary-foreground;
+}
+
+.table {
+  @apply min-w-full divide-y divide-border;
+}
+
+.table-header {
+  @apply bg-muted;
+}
+
+.table-header-cell {
+  @apply px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider;
+}
+
+.table-body {
+  @apply bg-background divide-y divide-border;
+}
+
+.table-cell {
+  @apply px-6 py-4 whitespace-nowrap text-sm text-foreground;
+}
+
+.table-row-hover {
+  @apply transition-colors hover:bg-muted;
+}
+
+.nav-item {
+  @apply flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground
+         hover:bg-muted hover:text-foreground
+         transition-all duration-200 cursor-pointer;
+}
+
+.nav-item-active {
+  @apply bg-accent text-accent-foreground hover:bg-accent/80 font-medium;
+}
+
+.spinner {
+  @apply inline-block h-5 w-5 animate-spin rounded-full border-2 border-solid
+         border-primary border-r-transparent;
+}
+
+.alert {
+  @apply p-4 rounded-lg border;
+}
+
+.alert-info {
+  @apply bg-accent border-border text-accent-foreground;
+}
+
+.alert-success {
+  @apply bg-green-50 border-green-200 text-green-800;
+}
+
+.alert-warning {
+  @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+}
+
+.alert-danger {
+  @apply bg-destructive/10 border-destructive/30 text-destructive;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}

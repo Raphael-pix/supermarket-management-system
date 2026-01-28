@@ -190,11 +190,20 @@ const restockBranch = async (req, res) => {
     const restockLog = await prisma.restockLog.create({
       data: {
         fromBranchId: hqBranch.id,
-        toBranchId: toBranchId,
-        productId: products[0].productId, // First product as reference
-        products: products,
-        performedBy: performedBy,
-        notes: notes || null,
+        toBranchId,
+        performedById: performedBy,
+        notes,
+        items: {
+          create: products.map((p) => ({
+            productId: p.productId,
+            quantity: p.quantity,
+          })),
+        },
+      },
+      include: {
+        items: {
+          include: { product: true },
+        },
       },
     });
 
@@ -205,7 +214,7 @@ const restockBranch = async (req, res) => {
         fromBranch: hqBranch.name,
         toBranch: targetBranch.name,
         products: updates,
-        performedAt: restockLog.performedAt,
+        performedAt: restockLog.createdAt,
       },
     });
   } catch (error) {

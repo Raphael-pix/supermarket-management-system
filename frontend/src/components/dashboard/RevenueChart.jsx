@@ -15,7 +15,7 @@ const RevenueChart = ({ data, loading }) => {
     return (
       <div className="card">
         <div className="h-80 flex items-center justify-center">
-          <div className="spinner border-blue-600"></div>
+          <div className="spinner border-primary"></div>
         </div>
       </div>
     );
@@ -24,10 +24,8 @@ const RevenueChart = ({ data, loading }) => {
   return (
     <div className="card">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-slate-900">
-          Revenue by Product
-        </h3>
-        <p className="text-sm text-slate-500 mt-1">
+        <h3 className="text-lg font-semibold">Revenue by Product</h3>
+        <p className="text-sm text-muted-foreground mt-1">
           Total revenue generated per drink brand
         </p>
       </div>

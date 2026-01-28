@@ -73,7 +73,7 @@ const promoteToAdmin = async (req, res) => {
       where: { id: userId },
       data: {
         role: "ADMIN",
-        promotedBy: performedBy,
+        promotedById: performedBy,
         promotedAt: new Date(),
       },
       select: {
@@ -134,7 +134,7 @@ const demoteToCustomer = async (req, res) => {
       where: { id: userId },
       data: {
         role: "USER",
-        promotedBy: null,
+        promotedById: null,
         promotedAt: null,
       },
       select: {

@@ -35,7 +35,7 @@ const SalesReports = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="spinner border-blue-600"></div>
+        <div className="spinner border-primary"></div>
       </div>
     );
   }
@@ -43,27 +43,25 @@ const SalesReports = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start  md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Sales Reports</h1>
-          <p className="text-slate-600 mt-2">
+          <h1 className="text-2xl font-bold md:text-3xl">Sales Reports</h1>
+          <p className="text-muted-foreground mt-2 not-md:text-sm">
             Comprehensive sales analytics and reporting
           </p>
         </div>
-        <button className="btn btn-primary">
+        <button className="btn btn-primary not-md:mt-2">
           <Download className="w-4 h-4" />
-          Export Report
+          <span className="hidden md:block">Export Report</span>
         </button>
       </div>
 
       {/* Filters */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
-          Filter Reports
-        </h3>
+        <h3 className="text-lg font-semibold mb-4">Filter Reports</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="text-sm font-medium text-slate-700 mb-2 block">
+            <label className="text-sm font-medium text-secondary-foreground mb-2 block">
               Start Date
             </label>
             <input
@@ -76,7 +74,7 @@ const SalesReports = () => {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700 mb-2 block">
+            <label className="text-sm font-medium text-secondary-foreground mb-2 block">
               End Date
             </label>
             <input
@@ -91,7 +89,8 @@ const SalesReports = () => {
           <div className="flex items-end">
             <button
               onClick={handleApplyFilters}
-              className="btn btn-primary w-full"
+              className="btn btn-secondary"
+              disabled={!filters.startDate || !filters.endDate}
             >
               Apply Filters
             </button>
@@ -103,36 +102,38 @@ const SalesReports = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="card">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-slate-600">
+            <h3 className="text-sm font-medium text-muted-foreground">
               Total Revenue
             </h3>
             <TrendingUp className="w-5 h-5 text-green-500" />
           </div>
-          <p className="text-3xl font-bold text-slate-900">
+          <p className="text-3xl font-bold">
             {formatCurrency(reports?.summary.totalRevenue || 0)}
           </p>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Across all branches and products
           </p>
         </div>
 
         <div className="card">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-slate-600">Total Sales</h3>
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Total Sales
+            </h3>
             <TrendingUp className="w-5 h-5 text-blue-500" />
           </div>
-          <p className="text-3xl font-bold text-slate-900">
+          <p className="text-3xl font-bold">
             {formatNumber(reports?.summary.totalSales || 0)}
           </p>
-          <p className="text-sm text-slate-500 mt-1">Number of transactions</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Number of transactions
+          </p>
         </div>
       </div>
 
       {/* Sales by Product */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
-          Sales by Product
-        </h3>
+        <h3 className="text-lg font-semibold mb-4">Sales by Product</h3>
         <div className="overflow-x-auto">
           <table className="table">
             <thead className="table-header">
@@ -157,7 +158,7 @@ const SalesReports = () => {
                   </td>
                   <td className="table-cell">
                     <div className="flex items-center gap-2">
-                      <div className="w-full bg-slate-200 rounded-full h-2 max-w-xs">
+                      <div className="w-full bg-muted rounded-full h-2 max-w-xs">
                         <div
                           className="bg-blue-600 h-2 rounded-full"
                           style={{
@@ -165,7 +166,7 @@ const SalesReports = () => {
                           }}
                         />
                       </div>
-                      <span className="text-sm text-slate-600 whitespace-nowrap">
+                      <span className="text-sm text-muted-foreground whitespace-nowrap">
                         {(
                           (product.revenue / reports.summary.totalRevenue) *
                           100
@@ -183,9 +184,7 @@ const SalesReports = () => {
 
       {/* Sales by Branch */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
-          Sales by Branch
-        </h3>
+        <h3 className="text-lg font-semibold mb-4">Sales by Branch</h3>
         <div className="overflow-x-auto">
           <table className="table">
             <thead className="table-header">
@@ -208,7 +207,7 @@ const SalesReports = () => {
                   <td className="table-cell font-semibold">
                     {formatCurrency(branch.totalRevenue)}
                   </td>
-                  <td className="table-cell text-slate-600">
+                  <td className="table-cell text-muted-foreground">
                     {formatCurrency(branch.totalRevenue / branch.totalSales)}
                   </td>
                 </tr>
@@ -220,14 +219,12 @@ const SalesReports = () => {
 
       {/* Top Products */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
-          Top Performing Products
-        </h3>
+        <h3 className="text-lg font-semibold  mb-4">Top Performing Products</h3>
         <div className="space-y-4">
           {reports?.topProducts.map((product, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-4 bg-slate-50 rounded-lg"
+              className="flex items-center justify-between p-4 bg-muted rounded-lg"
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -236,19 +233,15 @@ const SalesReports = () => {
                   </span>
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-900">
-                    {product.productName}
-                  </p>
-                  <p className="text-sm text-slate-600">
+                  <p className="font-semibold ">{product.productName}</p>
+                  <p className="text-sm text-muted-foreground">
                     {formatNumber(product.quantitySold)} units sold
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-bold text-slate-900">
-                  {formatCurrency(product.revenue)}
-                </p>
-                <p className="text-sm text-slate-600">revenue</p>
+                <p className="font-bold ">{formatCurrency(product.revenue)}</p>
+                <p className="text-sm text-muted-foreground">revenue</p>
               </div>
             </div>
           ))}

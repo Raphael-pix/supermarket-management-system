@@ -8,21 +8,19 @@ const Landing = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      // Check user role and redirect accordingly
       if (user.role === "ADMIN") {
         navigate("/admin/dashboard", { replace: true });
       } else {
-        // For customers - show message since we don't have customer interface
         navigate("/customer-redirect", { replace: true });
       }
     }
   }, [user, loading, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-        <div className="spinner border-blue-600 mx-auto mb-4"></div>
-        <p className="text-slate-600">Redirecting you...</p>
+        <div className="spinner border-coca-red mx-auto mb-4"></div>
+        <p>Redirecting you...</p>
       </div>
     </div>
   );

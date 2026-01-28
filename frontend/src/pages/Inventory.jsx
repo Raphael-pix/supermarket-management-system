@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Package, RefreshCw, AlertCircle, Plus } from "lucide-react";
+import { Package, RefreshCw, AlertCircle, Plus, Truck } from "lucide-react";
 import { inventoryAPI } from "../utils/api";
 import {
   formatNumber,
   getStockStatusColor,
   getStockStatusText,
 } from "../utils/formatters";
+import { toast } from "sonner";
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([]);
@@ -15,6 +16,7 @@ const Inventory = () => {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [showLowStock, setShowLowStock] = useState(false);
   const [restockModalOpen, setRestockModalOpen] = useState(false);
+  const [isRestocking, setIsRestocking] = useState(false);
   const [restockData, setRestockData] = useState({
     toBranchId: "",
     products: [],
@@ -50,14 +52,17 @@ const Inventory = () => {
 
   const handleRestock = async () => {
     try {
+      setIsRestocking(true);
       await inventoryAPI.restockBranch(restockData);
-      alert("Restock completed successfully!");
+      toast.success("Restock Completed Successfully");
       setRestockModalOpen(false);
       setRestockData({ toBranchId: "", products: [], notes: "" });
       fetchData();
     } catch (error) {
       console.error("Error restocking:", error);
-      alert(error.response?.data?.error || "Failed to restock");
+      toast.success(error.response?.data?.error || "Failed to restock");
+    } finally {
+      setIsRestocking(false);
     }
   };
 
@@ -72,21 +77,21 @@ const Inventory = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold md:text-3xl">
             Inventory Management
           </h1>
-          <p className="text-slate-600 mt-2">
+          <p className="text-muted-foreground mt-2 not-md:text-sm">
             Manage stock levels across all branches
           </p>
         </div>
         <button
           onClick={() => setRestockModalOpen(true)}
-          className="btn btn-primary"
+          className="btn btn-primary not-md:mt-2"
         >
-          <RefreshCw className="w-4 h-4" />
-          Restock Branch
+          <Truck className="w-4 h-4" />
+          <span className="hidden md:block">Restock Branch</span>
         </button>
       </div>
 
@@ -94,54 +99,63 @@ const Inventory = () => {
       <div className="card">
         <div className="flex flex-wrap gap-4 items-center">
           <div>
-            <label className="text-sm font-medium text-slate-700 mb-2 block">
+            <label className="text-sm font-medium text-secondary-foreground mb-2 block">
               Filter by Branch
             </label>
-            <select
-              value={selectedBranch}
-              onChange={(e) => setSelectedBranch(e.target.value)}
-              className="input w-64"
-            >
-              <option value="">All Branches</option>
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="lowStock"
-              checked={showLowStock}
-              onChange={(e) => setShowLowStock(e.target.checked)}
-              className="rounded"
-            />
-            <label
-              htmlFor="lowStock"
-              className="text-sm font-medium text-slate-700"
-            >
-              Show only low stock items
-            </label>
+            <div className="flex items-center gap-4">
+              <select
+                value={selectedBranch}
+                onChange={(e) => setSelectedBranch(e.target.value)}
+                className="input w-64"
+              >
+                <option value="">All Branches</option>
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+              <div className="items-center gap-2 w-full hidden md:flex">
+                <input
+                  type="checkbox"
+                  id="lowStock"
+                  checked={showLowStock}
+                  onChange={(e) => setShowLowStock(e.target.checked)}
+                  className="rounded"
+                />
+                <label htmlFor="lowStock" className="text-sm font-medium">
+                  Show only low stock items
+                </label>
+              </div>
+            </div>
           </div>
 
           <button
             onClick={fetchData}
-            className="btn btn-outline btn-sm ml-auto"
+            className="btn btn-outline btn-sm ml-auto not-md:mt-6"
           >
             <RefreshCw className="w-4 h-4" />
-            Refresh
+            <span className="hidden md:block">Refresh</span>
           </button>
+        </div>
+        <div className="flex items-center gap-2 w-full mt-3 px-2 md:hidden">
+          <input
+            type="checkbox"
+            id="lowStock"
+            checked={showLowStock}
+            onChange={(e) => setShowLowStock(e.target.checked)}
+            className="rounded"
+          />
+          <label htmlFor="lowStock" className="text-sm font-medium">
+            Show only low stock items
+          </label>
         </div>
       </div>
 
-      {/* Inventory by Branch */}
       {loading ? (
         <div className="card">
           <div className="h-64 flex items-center justify-center">
-            <div className="spinner border-blue-600"></div>
+            <div className="spinner border-primary"></div>
           </div>
         </div>
       ) : (
@@ -149,9 +163,7 @@ const Inventory = () => {
           {Object.entries(groupedInventory).map(([branchName, items]) => (
             <div key={branchName} className="card">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-slate-900">
-                  {branchName}
-                </h3>
+                <h3 className="text-xl font-semibold">{branchName}</h3>
                 <span className="badge badge-info">
                   {items.length} products
                 </span>
@@ -191,7 +203,7 @@ const Inventory = () => {
                             {formatNumber(item.quantity)} units
                           </span>
                         </td>
-                        <td className="table-cell text-slate-600">
+                        <td className="table-cell text-muted-foreground">
                           {item.lowStockThreshold} units
                         </td>
                         <td className="table-cell">
@@ -210,7 +222,7 @@ const Inventory = () => {
                             )}
                           </span>
                         </td>
-                        <td className="table-cell text-sm text-slate-600">
+                        <td className="table-cell text-sm text-muted-foreground">
                           {item.lastRestocked
                             ? new Date(item.lastRestocked).toLocaleDateString()
                             : "Never"}
@@ -226,8 +238,10 @@ const Inventory = () => {
           {Object.keys(groupedInventory).length === 0 && (
             <div className="card">
               <div className="text-center py-12">
-                <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-600">No inventory items found</p>
+                <Package className="w-16 h-16 text-muted mx-auto mb-4" />
+                <p className="text-muted-foreground">
+                  No inventory items found
+                </p>
               </div>
             </div>
           )}
@@ -236,15 +250,13 @@ const Inventory = () => {
 
       {/* Restock Modal */}
       {restockModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
-            <h3 className="text-xl font-bold text-slate-900 mb-4">
-              Restock Branch
-            </h3>
+            <h3 className="text-xl font-bold mb-4">Restock Branch</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">
+                <label className="text-sm font-medium text-foreground mb-2 block">
                   Select Branch to Restock
                 </label>
                 <select
@@ -269,7 +281,7 @@ const Inventory = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">
+                <label className="text-sm font-medium text-foreground mb-2 block">
                   Products to Restock
                 </label>
                 {products.map((product) => (
@@ -311,7 +323,7 @@ const Inventory = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">
+                <label className="text-sm font-medium text-foreground mb-2 block">
                   Notes (Optional)
                 </label>
                 <textarea
@@ -339,11 +351,17 @@ const Inventory = () => {
               <button
                 onClick={handleRestock}
                 disabled={
-                  !restockData.toBranchId || restockData.products.length === 0
+                  !restockData.toBranchId ||
+                  restockData.products.length === 0 ||
+                  isRestocking
                 }
                 className="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Confirm Restock
+                {isRestocking ? (
+                  <span>Restocking...</span>
+                ) : (
+                  <span>Confirm Restock</span>
+                )}
               </button>
             </div>
           </div>

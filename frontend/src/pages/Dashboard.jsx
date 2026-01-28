@@ -39,15 +39,13 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-        <p className="text-slate-600 mt-2">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground mt-2">
           Overview of your supermarket operations across all branches
         </p>
       </div>
 
-      {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Total Revenue"
@@ -83,7 +81,7 @@ const Dashboard = () => {
       {metrics && metrics.lowStockAlerts.length > 0 && (
         <div className="alert alert-warning">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="font-semibold mb-1">Low Stock Alert!</p>
               <p className="text-sm">
@@ -115,7 +113,6 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RevenueChart
           data={metrics?.revenueByProduct || []}
@@ -124,10 +121,8 @@ const Dashboard = () => {
         <BranchPieChart data={metrics?.salesByBranch || []} loading={loading} />
       </div>
 
-      {/* Sales Timeline */}
       <SalesLineChart data={timeline} loading={loading} />
 
-      {/* Recent Transactions */}
       <RecentTransactions data={transactions} loading={loading} />
     </div>
   );
