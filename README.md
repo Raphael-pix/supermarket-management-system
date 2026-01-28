@@ -121,17 +121,21 @@ supermarket-admin/
 ├── backend/
 │   ├── prisma/
 │   │   ├── schema.prisma       # Database schema
+|   |   ├── seed-sales.js       # Initialize users with sales data
 │   │   └── seed.js             # Initial data
 │   ├── src/
 │   │   ├── middleware/         # Auth & RBAC
 │   │   ├── controllers/        # Business logic
 │   │   ├── routes/             # API endpoints
+|   |   ├── services/           # Mpesa Intergration service
 │   │   └── server.js           # Express app
 │   └── package.json
 │
 ├── frontend/
 │   ├── src/
 │   │   ├── components/         # React components
+│   │   ├── context/            # Auth Context
+│   │   ├── hooks/              # Hook components
 │   │   ├── pages/              # Page components
 │   │   ├── utils/              # Utilities
 │   │   ├── App.jsx             # Main app
@@ -139,8 +143,6 @@ supermarket-admin/
 │   ├── index.html
 │   └── package.json
 │
-├── PROJECT_STRUCTURE.md
-├── SETUP_GUIDE.md
 └── README.md
 ```
 
@@ -150,14 +152,13 @@ supermarket-admin/
 
 - Node.js 18+
 - PostgreSQL database (Neon recommended)
-- Clerk account
 
 ### Installation
 
 1. **Clone the repository**
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Raphael-pix/supermarket-management-system.git
 ```
 
 2. **Install dependencies**
@@ -174,7 +175,22 @@ npm install
 
 3. **Configure environment variables**
 
-Create `.env` files based on `.env.example` in both directories.
+Create `.env` files
+
+```bash
+# /frontend/.env
+VITE_API_URL=http://localhost:3001/api
+```
+
+```bash
+# /backend/.env
+PORT=3001
+NODE_ENV=development
+
+DATABASE_URL=<YOUR-NEON-DB-URL>
+
+JWT_SECRET="<YOUR-JWT-SECRET>"
+```
 
 4. **Initialize database**
 
@@ -183,14 +199,6 @@ cd backend
 npx prisma generate
 npx prisma db push
 npm run prisma:seed
-```
-
-5. **Create first admin**
-
-Sign up via Clerk, then update the role in database:
-
-```sql
-UPDATE "User" SET role = 'ADMIN' WHERE "clerkId" = 'your_clerk_id';
 ```
 
 6. **Start the application**
@@ -212,7 +220,7 @@ npm run dev
 
 ### Core Models
 
-- **User**: Linked to Clerk, stores role
+- **User**: Admin stores role
 - **Branch**: 5 locations (HQ + 4 branches)
 - **Product**: 3 drinks with uniform pricing
 - **Inventory**: Stock per branch/product
@@ -286,10 +294,9 @@ View Charts & Tables → Export (optional)
 
 ### Frontend (Vercel/Netlify)
 
-1. Set `VITE_CLERK_PUBLISHABLE_KEY`
-2. Set `VITE_API_URL` to backend URL
-3. Build command: `npm run build`
-4. Publish directory: `dist`
+1. Set `VITE_API_URL` to backend URL
+2. Build command: `npm run build`
+3. Publish directory: `dist`
 
 ### Database (Neon)
 
@@ -347,7 +354,6 @@ Built with ❤️ for distributed systems management
 
 ## 🙏 Acknowledgments
 
-- **Clerk** - Authentication & user management
 - **Neon** - Serverless PostgreSQL
 - **Prisma** - Type-safe database access
 - **Recharts** - Beautiful React charts
