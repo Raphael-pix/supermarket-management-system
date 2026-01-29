@@ -14,6 +14,9 @@ class MpesaService {
   }
 
   async getAccessToken() {
+    if (process.env.PAYMENT_MODE === "mock") {
+      return;
+    }
     try {
       const auth = Buffer.from(
         `${this.consumerKey}:${this.consumerSecret}`,
@@ -69,6 +72,15 @@ class MpesaService {
     accountReference,
     transactionDesc,
   ) {
+    if (process.env.PAYMENT_MODE === "mock") {
+      console.log("🧪 MOCK STK PUSH INITIATED");
+
+      return {
+        success: true,
+        checkoutRequestId: "MOCK_" + Date.now(),
+        merchantRequestId: "MOCK_MERCHANT_" + Date.now(),
+      };
+    }
     try {
       const token = await this.getAccessToken();
       const timestamp = this.getTimestamp();
@@ -114,6 +126,17 @@ class MpesaService {
   }
 
   async querySTKPushStatus(checkoutRequestId) {
+    if (process.env.PAYMENT_MODE === "mock") {
+      console.log("🧪 MOCK STK STATUS CHECK:", checkoutRequestId);
+
+      // Simulate real-world delay
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      return {
+        success: true,
+        resultDesc: "Payment Confirmed (Mock)",
+      };
+    }
     try {
       const token = await this.getAccessToken();
       const timestamp = this.getTimestamp();
