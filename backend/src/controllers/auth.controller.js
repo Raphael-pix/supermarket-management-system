@@ -52,7 +52,7 @@ const signup = async (req, res) => {
         password: hashedPassword,
         firstName: firstName || null,
         lastName: lastName || null,
-        role: "CUSTOMER", // Always CUSTOMER on signup
+        role: "USER", // Always CUSTOMER on signup
       },
       select: {
         id: true,
