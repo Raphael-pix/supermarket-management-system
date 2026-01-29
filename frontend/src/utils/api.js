@@ -44,6 +44,11 @@ export const salesAPI = {
   getReports: (params) => api.get("/sales/reports", { params }),
   getDetailedSales: (params) => api.get("/sales/detailed", { params }),
   getAnalytics: () => api.get("/sales/analytics"),
+  exportReport: (params, config = {}) =>
+    api.get("/sales/export", {
+      params,
+      ...config,
+    }),
 };
 
 // Users API

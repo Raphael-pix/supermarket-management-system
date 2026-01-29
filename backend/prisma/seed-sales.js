@@ -1,104 +1,76 @@
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcrypt";
-import crypto from "crypto";
+import { PrismaClient, Prisma } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateMpesaRef() {
+  return "MPESA_" + Date.now() + Math.random().toString(36).substring(2, 8);
+}
+
 async function main() {
-  console.log("🌱 Seeding database...");
-
+  console.log("🧹 Clearing existing sales...");
+  await prisma.saleItem.deleteMany();
   await prisma.sale.deleteMany();
-  await prisma.user.deleteMany();
-  const password = await bcrypt.hash("password123", 10);
-
-  // -------------------------
-  // ADMINS
-  // -------------------------
-  const admins = await prisma.user.createMany({
-    data: [
-      {
-        email: "admin1@example.com",
-        firstName: "Alice",
-        lastName: "Ankle",
-        password,
-        role: "ADMIN",
-      },
-      {
-        email: "admin2@example.com",
-        firstName: "Bob",
-        lastName: "Boss",
-        password,
-        role: "ADMIN",
-      },
-    ],
-  });
-
-  console.log("✅ Admins created");
-
-  // -------------------------
-  // Default Users
-  // -------------------------
-  const usersData = [
-    {
-      email: "john@example.com",
-      firstName: "John",
-      lastName: "Doe",
-      password,
-    },
-    {
-      email: "jane@example.com",
-      firstName: "Jane",
-      lastName: "Smith",
-      password,
-    },
-  ];
-
-  const users = [];
-
-  for (const user of usersData) {
-    const createdUser = await prisma.user.create({
-      data: {
-        ...user,
-        role: "USER",
-      },
-    });
-    users.push(createdUser);
-  }
-
-  console.log("✅ users created");
-
-  // -------------------------
-  // SALES (linked to users)
-  // -------------------------
-  const salesData = [];
 
   const branches = await prisma.branch.findMany();
+  const products = await prisma.product.findMany();
 
-  for (const branch of branches) {
-    const numberOfSales = Math.floor(Math.random() * 5) + 1;
-
-    for (let i = 0; i < numberOfSales; i++) {
-      salesData.push({
-        totalAmount: parseFloat((Math.random() * 5000 + 500).toFixed(2)),
-        branchId: branch.id,
-        mpesaReference: crypto.randomUUID(),
-        transactionDate: new Date(
-          Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000,
-        ),
-      });
-    }
+  if (branches.length === 0 || products.length === 0) {
+    throw new Error("Branches or products missing");
   }
 
-  await prisma.sale.createMany({
-    data: salesData,
-  });
+  console.log(`📦 Seeding sales for ${branches.length} branches...`);
 
-  console.log(`✅ ${salesData.length} sales created`);
+  for (const branch of branches) {
+    const salesCount = randomInt(5, 15);
+
+    for (let i = 0; i < salesCount; i++) {
+      const itemsCount = randomInt(1, 4);
+      const selectedProducts = products
+        .sort(() => 0.5 - Math.random())
+        .slice(0, itemsCount);
+
+      let totalAmount = new Prisma.Decimal(0);
+
+      const saleItems = selectedProducts.map((product) => {
+        const quantity = randomInt(1, 3);
+        const price = product.price;
+        const subtotal = price.mul(quantity);
+
+        totalAmount = totalAmount.add(subtotal);
+
+        return {
+          productId: product.id,
+          quantity,
+          priceAtSale: price,
+          subtotal,
+        };
+      });
+
+      await prisma.sale.create({
+        data: {
+          branchId: branch.id,
+          mpesaReference: generateMpesaRef(),
+          totalAmount,
+          items: {
+            create: saleItems,
+          },
+        },
+      });
+    }
+
+    console.log(`✅ Seeded sales for branch: ${branch.name}`);
+  }
+
+  console.log("🎉 Sales seeding complete");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seed error:", e);
+    console.error("❌ Sales seed failed:", e);
     process.exit(1);
   })
   .finally(async () => {

@@ -1,25 +1,36 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Download, Calendar } from "lucide-react";
+import { TrendingUp, Download, RotateCcw } from "lucide-react";
 import { salesAPI } from "../utils/api";
 import { formatCurrency, formatNumber } from "../utils/formatters";
+import ExportSalesModal from "../components/sales/ExportSalesModal";
+import TopProductsCard from "../components/sales/TopProductsCard";
+import BranchSalesTable from "../components/sales/BranchSalesTable";
+import ProductSalesTable from "../components/sales/ProductSalesTable";
 
 const SalesReports = () => {
   const [reports, setReports] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [filters, setFilters] = useState({
     startDate: "",
     endDate: "",
     branchId: "",
   });
+  const [exportFilters, setExportFilters] = useState({
+    startDate: "",
+    endDate: "",
+  });
+
+  const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
     fetchReports();
   }, []);
 
-  const fetchReports = async () => {
+  const fetchReports = async (appliedFilters = filters) => {
     try {
       setLoading(true);
-      const response = await salesAPI.getReports(filters);
+      const response = await salesAPI.getReports(appliedFilters);
       setReports(response.data);
     } catch (error) {
       console.error("Error fetching reports:", error);
@@ -30,6 +41,41 @@ const SalesReports = () => {
 
   const handleApplyFilters = () => {
     fetchReports();
+  };
+  const handleResetFilters = () => {
+    const resetFilters = {
+      startDate: "",
+      endDate: "",
+      branchId: "",
+    };
+
+    setFilters(resetFilters);
+    fetchReports(resetFilters);
+  };
+
+  const handleExport = async () => {
+    try {
+      const response = await salesAPI.exportReport(exportFilters, {
+        responseType: "blob",
+      });
+
+      const blob = new Blob([response.data], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `sales-report-${exportFilters.startDate}-to-${exportFilters.endDate}.csv`;
+      link.click();
+
+      window.URL.revokeObjectURL(url);
+      setShowExportModal(false);
+      setExportFilters({
+        startDate: "",
+        endDate: "",
+      });
+    } catch (error) {
+      console.error("Export failed:", error);
+    }
   };
 
   if (loading) {
@@ -42,7 +88,6 @@ const SalesReports = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div className="flex items-start  md:items-center justify-between gap-6">
         <div>
           <h1 className="text-2xl font-bold md:text-3xl">Sales Reports</h1>
@@ -50,7 +95,10 @@ const SalesReports = () => {
             Comprehensive sales analytics and reporting
           </p>
         </div>
-        <button className="btn btn-primary not-md:mt-2">
+        <button
+          className="btn btn-primary not-md:mt-2"
+          onClick={() => setShowExportModal(true)}
+        >
           <Download className="w-4 h-4" />
           <span className="hidden md:block">Export Report</span>
         </button>
@@ -67,9 +115,23 @@ const SalesReports = () => {
             <input
               type="date"
               value={filters.startDate}
-              onChange={(e) =>
-                setFilters({ ...filters, startDate: e.target.value })
-              }
+              max={today}
+              onChange={(e) => {
+                const startDate = e.target.value;
+
+                setFilters((prev) => {
+                  let endDate = prev.endDate;
+                  if (!prev.endDate) {
+                    endDate = today;
+                  }
+
+                  if (endDate && endDate < startDate) {
+                    endDate = today;
+                  }
+
+                  return { ...prev, startDate, endDate };
+                });
+              }}
               className="input"
             />
           </div>
@@ -80,13 +142,27 @@ const SalesReports = () => {
             <input
               type="date"
               value={filters.endDate}
-              onChange={(e) =>
-                setFilters({ ...filters, endDate: e.target.value })
-              }
+              min={filters.startDate || undefined}
+              max={today}
+              onChange={(e) => {
+                let selectedEndDate = e.target.value;
+
+                if (
+                  selectedEndDate > today ||
+                  selectedEndDate < exportFilters.startDate
+                ) {
+                  selectedEndDate = today;
+                }
+
+                setFilters((prev) => ({
+                  ...prev,
+                  endDate: selectedEndDate,
+                }));
+              }}
               className="input"
             />
           </div>
-          <div className="flex items-end">
+          <div className="flex gap-4 items-end">
             <button
               onClick={handleApplyFilters}
               className="btn btn-secondary"
@@ -94,11 +170,16 @@ const SalesReports = () => {
             >
               Apply Filters
             </button>
+            <button
+              onClick={handleResetFilters}
+              className="btn btn-secondary btn-sm mb-1"
+            >
+              <RotateCcw className="w-4 h-4 text-muted-foreground" />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="card">
           <div className="flex items-center justify-between mb-2">
@@ -132,121 +213,30 @@ const SalesReports = () => {
       </div>
 
       {/* Sales by Product */}
-      <div className="card">
-        <h3 className="text-lg font-semibold mb-4">Sales by Product</h3>
-        <div className="overflow-x-auto">
-          <table className="table">
-            <thead className="table-header">
-              <tr>
-                <th className="table-header-cell">Product Name</th>
-                <th className="table-header-cell">Quantity Sold</th>
-                <th className="table-header-cell">Revenue</th>
-                <th className="table-header-cell">% of Total</th>
-              </tr>
-            </thead>
-            <tbody className="table-body">
-              {reports?.salesByProduct.map((product) => (
-                <tr key={product.productId} className="table-row-hover">
-                  <td className="table-cell font-medium">
-                    {product.productName}
-                  </td>
-                  <td className="table-cell">
-                    {formatNumber(product.quantitySold)} units
-                  </td>
-                  <td className="table-cell font-semibold">
-                    {formatCurrency(product.revenue)}
-                  </td>
-                  <td className="table-cell">
-                    <div className="flex items-center gap-2">
-                      <div className="w-full bg-muted rounded-full h-2 max-w-xs">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full"
-                          style={{
-                            width: `${((product.revenue / reports.summary.totalRevenue) * 100).toFixed(1)}%`,
-                          }}
-                        />
-                      </div>
-                      <span className="text-sm text-muted-foreground whitespace-nowrap">
-                        {(
-                          (product.revenue / reports.summary.totalRevenue) *
-                          100
-                        ).toFixed(1)}
-                        %
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <ProductSalesTable reports={reports} />
 
       {/* Sales by Branch */}
-      <div className="card">
-        <h3 className="text-lg font-semibold mb-4">Sales by Branch</h3>
-        <div className="overflow-x-auto">
-          <table className="table">
-            <thead className="table-header">
-              <tr>
-                <th className="table-header-cell">Branch Name</th>
-                <th className="table-header-cell">Total Sales</th>
-                <th className="table-header-cell">Revenue</th>
-                <th className="table-header-cell">Avg Transaction</th>
-              </tr>
-            </thead>
-            <tbody className="table-body">
-              {reports?.salesByBranch.map((branch) => (
-                <tr key={branch.branchId} className="table-row-hover">
-                  <td className="table-cell font-medium">
-                    {branch.branchName}
-                  </td>
-                  <td className="table-cell">
-                    {formatNumber(branch.totalSales)}
-                  </td>
-                  <td className="table-cell font-semibold">
-                    {formatCurrency(branch.totalRevenue)}
-                  </td>
-                  <td className="table-cell text-muted-foreground">
-                    {formatCurrency(branch.totalRevenue / branch.totalSales)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <BranchSalesTable reports={reports} />
 
-      {/* Top Products */}
       <div className="card">
         <h3 className="text-lg font-semibold  mb-4">Top Performing Products</h3>
         <div className="space-y-4">
           {reports?.topProducts.map((product, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between p-4 bg-muted rounded-lg"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-lg font-bold text-blue-600">
-                    #{index + 1}
-                  </span>
-                </div>
-                <div>
-                  <p className="font-semibold ">{product.productName}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatNumber(product.quantitySold)} units sold
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-bold ">{formatCurrency(product.revenue)}</p>
-                <p className="text-sm text-muted-foreground">revenue</p>
-              </div>
+            <div key={index}>
+              <TopProductsCard product={product} index={index} />
             </div>
           ))}
         </div>
       </div>
+      {showExportModal && (
+        <ExportSalesModal
+          today={today}
+          exportFilters={exportFilters}
+          setExportFilters={setExportFilters}
+          setShowExportModal={setShowExportModal}
+          handleExport={handleExport}
+        />
+      )}
     </div>
   );
 };

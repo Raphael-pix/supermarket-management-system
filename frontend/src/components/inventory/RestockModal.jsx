@@ -8,8 +8,12 @@ const RestockModal = ({
   setRestockModalOpen,
 }) => {
   return (
-    <div className="fixed inset-0 bg-black/40 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={() => setRestockModalOpen(false)}
+      />
+      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 z-10">
         <h3 className="text-xl font-bold mb-4">Restock Branch</h3>
 
         <div className="space-y-4">
@@ -132,7 +136,11 @@ const RestockHqModal = ({
 }) => {
   return (
     <div className="fixed inset-0 bg-black/40 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={() => setRestockHqModalOpen(false)}
+      />
+      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 z-10">
         <h3 className="text-xl font-bold mb-4">Restock HQ</h3>
 
         <div className="space-y-4">

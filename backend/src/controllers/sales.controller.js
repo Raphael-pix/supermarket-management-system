@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import ExcelJS from "exceljs";
 const prisma = new PrismaClient();
 
 /**
@@ -42,21 +43,23 @@ const getSalesReports = async (req, res) => {
 
     // Manually group them (Safe for SQLite)
     const productStats = {};
-    salesItems.forEach(item => {
+    salesItems.forEach((item) => {
       const pId = item.productId;
       if (!productStats[pId]) {
         productStats[pId] = {
           productId: pId,
           productName: item.product.name,
           quantitySold: 0,
-          revenue: 0
+          revenue: 0,
         };
       }
       productStats[pId].quantitySold += item.quantity;
       productStats[pId].revenue += parseFloat(item.subtotal);
     });
 
-    const salesByProduct = Object.values(productStats).sort((a, b) => b.revenue - a.revenue);
+    const salesByProduct = Object.values(productStats).sort(
+      (a, b) => b.revenue - a.revenue,
+    );
 
     // 3. Sales by Branch
     const salesByBranch = await prisma.sale.groupBy({
@@ -69,7 +72,7 @@ const getSalesReports = async (req, res) => {
     // Enrich with Branch Names
     const branches = await prisma.branch.findMany();
     const branchMap = {};
-    branches.forEach(b => branchMap[b.id] = b.name);
+    branches.forEach((b) => (branchMap[b.id] = b.name));
 
     const salesByBranchEnriched = salesByBranch.map((item) => ({
       branchId: item.branchId,
@@ -90,10 +93,11 @@ const getSalesReports = async (req, res) => {
       salesByBranch: salesByBranchEnriched,
       topProducts,
     });
-
   } catch (error) {
     console.error("Sales reports error:", error);
-    res.status(500).json({ error: "Failed to generate reports: " + error.message });
+    res
+      .status(500)
+      .json({ error: "Failed to generate reports: " + error.message });
   }
 };
 
@@ -170,20 +174,97 @@ const getSalesAnalytics = async (req, res) => {
       _avg: { totalAmount: true },
     });
 
-    // Note: Day of Week grouping is complex in SQLite/Prisma. 
+    // Note: Day of Week grouping is complex in SQLite/Prisma.
     // For this assignment, we return an empty array to prevent crashes.
-    // The marks rely on "Brand Report" and "Total Income" (which works above), 
+    // The marks rely on "Brand Report" and "Total Income" (which works above),
     // not "Day of Week".
-    
+
     res.json({
       averageTransactionValue: parseFloat(avgTransaction._avg.totalAmount || 0),
       salesByDayOfWeek: [], // Returning empty to avoid SQLite crash
     });
-
   } catch (error) {
     console.error("Sales analytics error:", error);
     res.status(500).json({ error: "Failed to fetch analytics" });
   }
 };
 
-export { getSalesReports, getDetailedSales, getSalesAnalytics };
+/**
+ * GET /api/sales/export
+ * Returns report on sales in csv formart
+ */
+const exportSalesReport = async (req, res) => {
+  const { startDate, endDate } = req.query;
+
+  if (!startDate || !endDate) {
+    return res.status(400).json({ error: "Start and end date required" });
+  }
+
+  const sales = await prisma.sale.findMany({
+    where: {
+      transactionDate: {
+        gte: new Date(startDate),
+        lte: new Date(endDate),
+      },
+    },
+    include: {
+      branch: true,
+      items: { include: { product: true } },
+    },
+    orderBy: { transactionDate: "asc" },
+  });
+
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Sales Report");
+
+  sheet.columns = [
+    { header: "Date", key: "date", width: 15 },
+    { header: "Branch", key: "branch", width: 20 },
+    { header: "Product", key: "product", width: 25 },
+    { header: "Quantity", key: "quantity", width: 12 },
+    { header: "Unit Price", key: "price", width: 15 },
+    { header: "Subtotal", key: "subtotal", width: 15 },
+    { header: "M-Pesa Ref", key: "mpesa", width: 25 },
+  ];
+
+  sales.forEach((sale) => {
+    sale.items.forEach((item) => {
+      sheet.addRow({
+        date: sale.transactionDate.toISOString().split("T")[0],
+        branch: sale.branch.name,
+        product: item.product.name,
+        quantity: item.quantity,
+        price: item.priceAtSale.toNumber(),
+        subtotal: item.subtotal.toNumber(),
+        mpesa: sale.mpesaReference,
+      });
+    });
+  });
+
+  sheet.getRow(1).font = { bold: true };
+  sheet.columns.forEach((col) => {
+    col.alignment = { vertical: "middle", horizontal: "left" };
+  });
+
+  sheet.getColumn("price").numFmt = "KES #,##0.00";
+  sheet.getColumn("subtotal").numFmt = "KES #,##0.00";
+
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  );
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=sales-report.xlsx",
+  );
+
+  await workbook.xlsx.write(res);
+  res.end();
+};
+
+export {
+  getSalesReports,
+  getDetailedSales,
+  getSalesAnalytics,
+  exportSalesReport,
+};

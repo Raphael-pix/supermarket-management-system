@@ -1,4 +1,6 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
+
 const prisma = new PrismaClient();
 
 async function main() {
@@ -114,6 +116,64 @@ async function main() {
     skipDuplicates: true,
   });
   console.log(`✅ Created ${inventoryData.length} inventory records`);
+
+  const password = await bcrypt.hash("password123", 10);
+
+  // -------------------------
+  // ADMINS
+  // -------------------------
+  const admins = await prisma.user.createMany({
+    data: [
+      {
+        email: "admin1@example.com",
+        firstName: "Alice",
+        lastName: "Ankle",
+        password,
+        role: "ADMIN",
+      },
+      {
+        email: "admin2@example.com",
+        firstName: "Bob",
+        lastName: "Boss",
+        password,
+        role: "ADMIN",
+      },
+    ],
+  });
+
+  console.log("✅ Admins created");
+
+  // -------------------------
+  // Default Users
+  // -------------------------
+  const usersData = [
+    {
+      email: "john@example.com",
+      firstName: "John",
+      lastName: "Doe",
+      password,
+    },
+    {
+      email: "jane@example.com",
+      firstName: "Jane",
+      lastName: "Smith",
+      password,
+    },
+  ];
+
+  const users = [];
+
+  for (const user of usersData) {
+    const createdUser = await prisma.user.create({
+      data: {
+        ...user,
+        role: "USER",
+      },
+    });
+    users.push(createdUser);
+  }
+
+  console.log("✅ users created");
 
   console.log("✨ Seeding completed successfully!");
 }
