@@ -5,6 +5,9 @@
       "source": "/api/:path*",
       "destination": "https://supermarket-management-system-production-1b18.up.railway.app/api/:path*"
     },
-    { "source": "/:path*", "destination": "/index.html" }
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
