@@ -1,4 +1,5 @@
 import { PrismaClient, Prisma } from "@prisma/client";
+import { randomUUID } from "crypto";
 
 const prisma = new PrismaClient();
 
@@ -7,7 +8,7 @@ function randomInt(min, max) {
 }
 
 function generateMpesaRef() {
-  return "MPESA_" + Date.now() + Math.random().toString(36).substring(2, 8);
+  return "MPX" + Date.now() + Math.random().toString(36).substring(2, 8);
 }
 
 async function main() {
@@ -54,6 +55,7 @@ async function main() {
         data: {
           branchId: branch.id,
           mpesaReference: generateMpesaRef(),
+          checkoutRequestId: randomUUID(),
           totalAmount,
           items: {
             create: saleItems,

@@ -73,11 +73,12 @@ model Inventory {
 }
 
 model Sale {
-    id              String   @id @default(cuid())
-    branchId        String
-    totalAmount     Decimal  @db.Decimal(10, 2)
-    mpesaReference  String   @unique
-    transactionDate DateTime @default(now())
+    id                String   @id @default(cuid())
+    branchId          String
+    totalAmount       Decimal  @db.Decimal(10, 2)
+    checkoutRequestId String   @unique
+    mpesaReference    String?
+    transactionDate   DateTime @default(now())
 
     branch Branch     @relation(fields: [branchId], references: [id])
     items  SaleItem[]
