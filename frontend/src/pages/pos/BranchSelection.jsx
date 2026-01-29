@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Store, MapPin } from "lucide-react";
+import { Store, MapPin, ChevronRight } from "lucide-react";
 import posAPI from "../../utils/pos.service";
 
 const BranchSelection = () => {
@@ -67,11 +67,10 @@ const BranchSelection = () => {
           </div>
           <h1 className="text-4xl font-bold  mb-3">SoftSpree</h1>
           <p className="text-lg text-muted-foreground">
-            Select your branch to start selling
+            Select your branch to start purchasing
           </p>
         </div>
 
-        {/* Error Message */}
         {error && (
           <div className="alert alert-danger mb-6">
             <p>{error}</p>
@@ -90,20 +89,8 @@ const BranchSelection = () => {
                 <div className="w-14 h-14 bg-accent rounded-xl flex items-center justify-center group-hover:bg-accent-foreground transition-colors">
                   <Store className="w-7 h-7 text-primary group-hover:text-white transition-colors" />
                 </div>
-                <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center group-hover:bg-accent">
-                  <svg
-                    className="w-5 h-5 text-slate-400 group-hover:text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center group-hover:bg-accent">
+                  <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-primary " />
                 </div>
               </div>
 

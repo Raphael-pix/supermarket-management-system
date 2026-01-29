@@ -14,7 +14,7 @@ const Checkout = () => {
 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [processing, setProcessing] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState("idle"); // idle, waiting, success, failed
+  const [paymentStatus, setPaymentStatus] = useState("idle");
   const [error, setError] = useState("");
   const [checkoutRequestId, setCheckoutRequestId] = useState("");
   const [transactionRef, setTransactionRef] = useState("");
@@ -68,7 +68,6 @@ const Checkout = () => {
     setPaymentStatus("initiating");
 
     try {
-      // Prepare items for API
       const items = cart.map((item) => ({
         productId: item.id,
         quantity: item.quantity,
@@ -78,7 +77,6 @@ const Checkout = () => {
 
       const total = getCartTotal();
 
-      // Initiate payment
       const response = await posAPI.initiatePayment(
         branchId,
         phoneNumber,
@@ -129,7 +127,6 @@ const Checkout = () => {
           setPaymentStatus("success");
           setTransactionRef(response.data.transactionRef);
 
-          // Navigate to receipt after short delay
           setTimeout(() => {
             navigate(`/pos/receipt/${response.data.transactionRef}`);
           }, 2000);

@@ -80,7 +80,6 @@ const Receipt = () => {
 
   return (
     <>
-      {/* Print Styles */}
       <style>{`
         @media print {
           body * {
@@ -108,8 +107,7 @@ const Receipt = () => {
 
       <div className="min-h-screen  py-8">
         <div className="container mx-auto px-4 max-w-2xl">
-          {/* Success Banner - No Print */}
-          <div className="no-print bg-accent border-2 border-border rounded-xl p-6 mb-6 text-center">
+          <div className="no-print bg-background border-2 card rounded-xl p-6 mb-6 text-center">
             <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
@@ -119,7 +117,6 @@ const Receipt = () => {
             <p>Payment received successfully</p>
           </div>
 
-          {/* Action Buttons - No Print */}
           <div className="no-print flex gap-4 mb-6">
             <button onClick={handlePrint} className="btn btn-outline flex-1">
               <Printer className="w-5 h-5" />
@@ -131,15 +128,13 @@ const Receipt = () => {
             </button>
           </div>
 
-          {/* Receipt Content */}
           <div
             id="receipt-content"
-            className="bg-white rounded-xl shadow-lg p-8 print-full-width"
+            className="bg-card card rounded-xl shadow-lg p-8 print-full-width"
           >
-            {/* Header */}
             <div className="text-center mb-8 pb-6 border-b-2 border-border">
               <h1 className="text-3xl font-bold mb-2">
-                Soft Drinks Distribution
+                SoftSpree Distribution
               </h1>
               <p className="text-xl font-semibold text-primary mb-1">
                 {receipt.branch}
@@ -149,7 +144,6 @@ const Receipt = () => {
               </p>
             </div>
 
-            {/* Transaction Details */}
             <div className="mb-8 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Transaction Ref:</span>
@@ -169,7 +163,6 @@ const Receipt = () => {
               </div>
             </div>
 
-            {/* Items */}
             <div className="mb-8">
               <h3 className="font-semibold mb-4 pb-2 border-b border-border">
                 Items Purchased
@@ -203,7 +196,6 @@ const Receipt = () => {
               </table>
             </div>
 
-            {/* Total */}
             <div className="border-t-2 border-border pt-4 mb-8">
               <div className="flex justify-between items-center">
                 <span className="text-xl font-semibold">TOTAL PAID</span>
@@ -213,7 +205,6 @@ const Receipt = () => {
               </div>
             </div>
 
-            {/* Footer */}
             <div className="text-center pt-6 border-t border-border">
               <p className="text-sm text-muted-foreground mb-2">
                 Thank you for your purchase!
@@ -221,20 +212,9 @@ const Receipt = () => {
               <p className="text-xs text-slate-500">
                 For support, please contact your branch
               </p>
-              <p className="text-xs text-muted-foreground mt-4">
-                Powered by Soft Drinks Distribution System
-              </p>
-            </div>
-
-            {/* QR Code Placeholder (optional) */}
-            <div className="mt-6 flex justify-center">
-              <div className="w-32 h-32 bg-accent rounded-lg flex items-center justify-center">
-                <span className="text-xs text-muted-foreground">QR Code</span>
-              </div>
             </div>
           </div>
 
-          {/* Mobile-friendly actions at bottom */}
           <div className="no-print mt-6 flex flex-col gap-3">
             <button
               onClick={handleNewOrder}

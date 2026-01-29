@@ -10,6 +10,8 @@ import {
 import { usersAPI } from "../utils/api";
 import { formatDate, getInitials } from "../utils/formatters";
 import { toast } from "sonner";
+import StatsCard from "../components/users/StatsCard";
+import UserTable from "../components/users/UserTable";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -87,7 +89,6 @@ const Users = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold ">User Management</h1>
         <p className="text-muted-foreground mt-2">
@@ -95,50 +96,40 @@ const Users = () => {
         </p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="card">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Total Users
-            </h3>
-            <UsersIcon className="w-5 h-5 text-blue-500" />
-          </div>
-          <p className="text-3xl font-bold ">{stats?.totalUsers || 0}</p>
-        </div>
+        <StatsCard
+          title="Total Users"
+          value={stats?.totalUsers}
+          icon={UsersIcon}
+          color="#2b7fff"
+          loading={loading}
+        />
 
-        <div className="card">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Administrators
-            </h3>
-            <Shield className="w-5 h-5 text-purple-500" />
-          </div>
-          <p className="text-3xl font-bold ">{stats?.adminCount || 0}</p>
-        </div>
+        <StatsCard
+          title="Administrators"
+          value={stats?.adminCount}
+          icon={Shield}
+          color="#ad46ff"
+          loading={loading}
+        />
 
-        <div className="card">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Customers
-            </h3>
-            <UsersIcon className="w-5 h-5 text-green-500" />
-          </div>
-          <p className="text-3xl font-bold ">{stats?.customerCount || 0}</p>
-        </div>
+        <StatsCard
+          title="Customers"
+          value={stats?.customerCount}
+          icon={UsersIcon}
+          color="#00c951"
+          loading={loading}
+        />
 
-        <div className="card">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              New (30 days)
-            </h3>
-            <UserPlus className="w-5 h-5 text-orange-500" />
-          </div>
-          <p className="text-3xl font-bold ">{stats?.recentSignUps || 0}</p>
-        </div>
+        <StatsCard
+          title="New (30 days)"
+          value={stats?.recentSignUps}
+          icon={UserPlus}
+          color="#ff6900"
+          loading={loading}
+        />
       </div>
 
-      {/* Filters and Search */}
       <div className="card">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-50">
@@ -168,112 +159,15 @@ const Users = () => {
         </div>
       </div>
 
-      {/* Users Table */}
       <div className="card">
         <div className="overflow-x-auto">
-          <table className="table">
-            <thead className="table-header">
-              <tr>
-                <th className="table-header-cell">User</th>
-                <th className="table-header-cell">Email</th>
-                <th className="table-header-cell">Role</th>
-                <th className="table-header-cell">Joined Date</th>
-                <th className="table-header-cell">Promoted By</th>
-                <th className="table-header-cell">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="table-body">
-              {loading ? (
-                <tr>
-                  <td colSpan="6" className="table-cell text-center py-8">
-                    <div className="spinner border-primary mx-auto"></div>
-                  </td>
-                </tr>
-              ) : filteredUsers.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="6"
-                    className="table-cell text-center text-muted-foreground py-8"
-                  >
-                    No users found
-                  </td>
-                </tr>
-              ) : (
-                filteredUsers.map((user) => (
-                  <tr key={user.id} className="table-row-hover">
-                    <td className="table-cell">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-muted-foreground rounded-full flex items-center justify-center text-white font-semibold">
-                          {getInitials(user.firstName, user.lastName)}
-                        </div>
-                        <div>
-                          <p className="font-medium ">
-                            {user.firstName || user.lastName
-                              ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
-                              : "N/A"}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            ID: {user.id.substring(0, 8)}...
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="table-cell">{user.email}</td>
-                    <td className="table-cell">
-                      {user.role === "ADMIN" ? (
-                        <span className="badge badge-danger flex items-center gap-1 w-fit">
-                          <Crown className="w-3 h-3" />
-                          Administrator
-                        </span>
-                      ) : (
-                        <span className="badge badge-info">User</span>
-                      )}
-                    </td>
-                    <td className="table-cell text-sm text-muted-foreground">
-                      {formatDate(user.createdAt)}
-                    </td>
-                    <td className="table-cell text-sm text-muted-foreground">
-                      {user.promotedBy ? (
-                        <div>
-                          <p>By Admin</p>
-                          <p className="text-xs">
-                            {formatDate(user.promotedAt)}
-                          </p>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </td>
-                    <td className="table-cell">
-                      {user.role === "USER" ? (
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setPromoteModalOpen(true);
-                          }}
-                          className="btn btn-sm btn-outline"
-                        >
-                          <Shield className="w-4 h-4" />
-                          Promote to Admin
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setDemoteModalOpen(true);
-                          }}
-                          className="btn btn-sm btn-outline"
-                        >
-                          <ShieldOff className="w-4 h-4" />
-                          Demote to user
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <UserTable
+            loading={loading}
+            filteredUsers={filteredUsers}
+            setSelectedUser={setSelectedUser}
+            setPromoteModalOpen={setPromoteModalOpen}
+            setDemoteModalOpen={setDemoteModalOpen}
+          />
         </div>
       </div>
 
