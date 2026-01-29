@@ -23,7 +23,7 @@ const CustomerRedirect = () => {
 
           <div className="bg-accent border border-border rounded-lg p-4 mb-6 text-left">
             <p className="text-md">
-              This is an <strong>admin-only dashboard</strong> system., please
+              This is an <strong>admin-only dashboard</strong> system. please
               contact an existing administrator to promote your account.
             </p>
           </div>
