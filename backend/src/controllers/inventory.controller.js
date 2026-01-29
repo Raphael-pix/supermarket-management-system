@@ -13,10 +13,9 @@ const getInventory = async (req, res) => {
     if (branchId) {
       where.branchId = branchId;
     }
-    // Note: This assumes you have defined lowStockThreshold in your schema.
-    // If not, we remove the complex query to prevent crashes.
+
     if (lowStock === "true") {
-      where.quantity = { lt: 10 }; // Hardcoded threshold for safety if field missing
+      where.quantity = { lt: 10 };
     }
 
     const inventory = await prisma.inventory.findMany({
@@ -92,22 +91,16 @@ const getProducts = async (req, res) => {
  */
 const restockBranch = async (req, res) => {
   try {
-    // We accept 'quantity' and 'productId' directly if sent as single item,
-    // or 'products' array if sent as bulk.
-    // This handles both the dashboard form and bulk uploads.
-    let { branchId, productId, quantity, products } = req.body;
+    let { branchId, productId, quantity, products, notes } = req.body;
+    const performedById = req.userId;
 
-    // Support the "toBranchId" naming if the frontend sends that
     const targetBranchId = branchId || req.body.toBranchId;
-
-    // Validation
     if (!targetBranchId) {
       return res.status(400).json({ error: "Branch ID is required" });
     }
 
-    // Normalize input to an array of updates
     const itemsToUpdate = [];
-    if (products && Array.isArray(products)) {
+    if (Array.isArray(products)) {
       itemsToUpdate.push(...products);
     } else if (productId && quantity) {
       itemsToUpdate.push({ productId, quantity });
@@ -117,97 +110,88 @@ const restockBranch = async (req, res) => {
       return res.status(400).json({ error: "No products provided to restock" });
     }
 
-    // Verify branch exists
-    const targetBranch = await prisma.branch.findUnique({
-      where: { id: targetBranchId },
-    });
+    const [targetBranch, hqBranch] = await Promise.all([
+      prisma.branch.findUnique({ where: { id: targetBranchId } }),
+      prisma.branch.findFirst({ where: { isHQ: true } }),
+    ]);
 
     if (!targetBranch) {
       return res.status(404).json({ error: "Target branch not found" });
     }
-
-    const updates = [];
-    for (const item of products) {
-      const { productId, quantity } = item;
-
-      if (!productId || !quantity || quantity <= 0) {
-        return res.status(400).json({
-          error: "Each product must have productId and positive quantity",
-        });
-      }
-
-      // Check HQ has enough stock
-      const hqInventory = await prisma.inventory.findUnique({
-        where: {
-          branchId_productId: {
-            branchId: hqBranch.id,
-            productId: productId,
-          },
-        },
-      });
-
-      if (!hqInventory || hqInventory.quantity < quantity) {
-        const product = await prisma.product.findUnique({
-          where: { id: productId },
-        });
-        return res.status(400).json({
-          error: `Insufficient stock in HQ for ${product?.name || "product"}. Available: ${hqInventory?.quantity || 0}`,
-        });
-      }
-
-      // Deduct from HQ
-      await prisma.inventory.update({
-        where: {
-          branchId_productId: {
-            branchId: hqBranch.id,
-            productId: productId,
-          },
-        },
-        data: {
-          quantity: {
-            decrement: quantity,
-          },
-        },
-      });
-
-      // Add to target branch
-      await prisma.inventory.update({
-        where: {
-          branchId_productId: {
-            branchId: toBranchId,
-            productId: productId,
-          },
-        },
-        data: {
-          quantity: {
-            increment: quantity,
-          },
-          lastRestocked: new Date(),
-        },
-      });
-
-      updates.push({ productId, quantity });
+    if (!hqBranch) {
+      return res.status(404).json({ error: "HQ branch not found" });
     }
 
-    // Log the restock operation
-    const restockLog = await prisma.restockLog.create({
-      data: {
-        fromBranchId: hqBranch.id,
-        branchId,
-        performedById: performedBy,
-        notes,
-        items: {
-          create: products.map((p) => ({
-            productId: p.productId,
-            quantity: p.quantity,
-          })),
+    const restockLog = await prisma.$transaction(async (tx) => {
+      // Validate stock first
+      for (const { productId, quantity } of itemsToUpdate) {
+        if (!productId || quantity <= 0) {
+          throw new Error("Invalid product or quantity");
+        }
+
+        const hqInventory = await tx.inventory.findUnique({
+          where: {
+            branchId_productId: {
+              branchId: hqBranch.id,
+              productId,
+            },
+          },
+        });
+
+        if (!hqInventory || hqInventory.quantity < quantity) {
+          const product = await tx.product.findUnique({
+            where: { id: productId },
+          });
+          throw new Error(
+            `Insufficient stock in HQ for ${product?.name || "product"}`,
+          );
+        }
+      }
+
+      // Apply inventory updates
+      for (const { productId, quantity } of itemsToUpdate) {
+        await tx.inventory.update({
+          where: {
+            branchId_productId: {
+              branchId: hqBranch.id,
+              productId,
+            },
+          },
+          data: { quantity: { decrement: quantity } },
+        });
+
+        await tx.inventory.update({
+          where: {
+            branchId_productId: {
+              branchId: targetBranch.id,
+              productId,
+            },
+          },
+          data: {
+            quantity: { increment: quantity },
+            lastRestocked: new Date(),
+          },
+        });
+      }
+
+      // reate restock log + items
+      return tx.restockLog.create({
+        data: {
+          fromBranchId: hqBranch.id,
+          toBranchId: targetBranch.id,
+          performedById,
+          notes,
+          items: {
+            create: itemsToUpdate.map((p) => ({
+              productId: p.productId,
+              quantity: p.quantity,
+            })),
+          },
         },
-      },
-      include: {
-        items: {
-          include: { product: true },
+        include: {
+          items: { include: { product: true } },
         },
-      },
+      });
     });
 
     res.json({
@@ -216,15 +200,95 @@ const restockBranch = async (req, res) => {
         id: restockLog.id,
         fromBranch: hqBranch.name,
         toBranch: targetBranch.name,
-        products: updates,
+        items: restockLog.items,
         performedAt: restockLog.createdAt,
       },
     });
   } catch (error) {
     console.error("Restock error:", error);
-    res
-      .status(500)
-      .json({ error: "Failed to complete restock: " + error.message });
+    res.status(500).json({
+      error: error.message || "Failed to complete restock",
+    });
+  }
+};
+
+/**
+ * POST /api/inventory/restockhq
+ * Restock HQ from suppliers
+ */
+const restockHQ = async (req, res) => {
+  try {
+    const { products, supplierName, referenceNo, notes } = req.body;
+    const performedById = req.userId;
+
+    if (!products || !Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ error: "Products are required" });
+    }
+
+    const hqBranch = await prisma.branch.findFirst({
+      where: { isHQ: true },
+    });
+
+    if (!hqBranch) {
+      return res.status(404).json({ error: "HQ branch not found" });
+    }
+
+    const restockLog = await prisma.$transaction(async (tx) => {
+      for (const { productId, quantity } of products) {
+        if (!productId || quantity <= 0) {
+          throw new Error("Invalid product or quantity");
+        }
+
+        await tx.inventory.upsert({
+          where: {
+            branchId_productId: {
+              branchId: hqBranch.id,
+              productId,
+            },
+          },
+          update: {
+            quantity: { increment: quantity },
+            lastRestocked: new Date(),
+          },
+          create: {
+            branchId: hqBranch.id,
+            productId,
+            quantity,
+            lastRestocked: new Date(),
+          },
+        });
+      }
+
+      return tx.hqRestockLog.create({
+        data: {
+          hqBranchId: hqBranch.id,
+          performedById,
+          supplierName,
+          referenceNo,
+          notes,
+          items: {
+            create: products.map((p) => ({
+              productId: p.productId,
+              quantity: p.quantity,
+              unitCost: p.unitCost ?? null,
+            })),
+          },
+        },
+        include: {
+          items: { include: { product: true } },
+        },
+      });
+    });
+
+    res.json({
+      message: "HQ restocked successfully",
+      restock: restockLog,
+    });
+  } catch (error) {
+    console.error("HQ Restock Error:", error);
+    res.status(500).json({
+      error: error.message || "Failed to restock HQ",
+    });
   }
 };
 
@@ -266,4 +330,11 @@ const getLowStock = async (req, res) => {
   }
 };
 
-export { getInventory, getBranches, getProducts, restockBranch, getLowStock };
+export {
+  getInventory,
+  getBranches,
+  getProducts,
+  restockBranch,
+  restockHQ,
+  getLowStock,
+};

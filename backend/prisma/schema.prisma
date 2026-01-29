@@ -24,9 +24,10 @@ model User {
 
     promotedAt    DateTime?
     promotedById  String?
-    promotedBy    User?        @relation("UserPromotion", fields: [promotedById], references: [id])
-    promotedUsers User[]       @relation("UserPromotion")
+    promotedBy    User?          @relation("UserPromotion", fields: [promotedById], references: [id])
+    promotedUsers User[]         @relation("UserPromotion")
     restockLogs   RestockLog[]
+    hqRestockLogs HqRestockLog[]
 }
 
 model Branch {
@@ -39,8 +40,9 @@ model Branch {
     inventory Inventory[]
     sales     Sale[]
 
-    outgoingRestocks RestockLog[] @relation("FromBranch")
-    incomingRestocks RestockLog[] @relation("ToBranch")
+    outgoingRestocks RestockLog[]   @relation("FromBranch")
+    incomingRestocks RestockLog[]   @relation("ToBranch")
+    hqRestockLogs    HqRestockLog[]
 }
 
 model Product {
@@ -53,6 +55,7 @@ model Product {
     inventory       Inventory[]
     saleItems       SaleItem[]
     restockLogItems RestockLogItem[]
+    hqRestockItems  HqRestockItem[]
 }
 
 model Inventory {
@@ -128,4 +131,33 @@ model RestockLogItem {
 
     @@index([restockLogId])
     @@index([productId])
+}
+
+model HqRestockLog {
+    id         String @id @default(cuid())
+    hqBranchId String
+    hqBranch   Branch @relation(fields: [hqBranchId], references: [id])
+
+    performedById String
+    performedBy   User   @relation(fields: [performedById], references: [id])
+
+    supplierName String?
+    referenceNo  String? // Invoice / delivery note
+    notes        String?
+
+    items HqRestockItem[]
+
+    createdAt DateTime @default(now())
+}
+
+model HqRestockItem {
+    id          String       @id @default(cuid())
+    hqRestockId String
+    hqRestock   HqRestockLog @relation(fields: [hqRestockId], references: [id])
+
+    productId String
+    product   Product @relation(fields: [productId], references: [id])
+
+    quantity Int
+    unitCost Float? // Optional but important later
 }

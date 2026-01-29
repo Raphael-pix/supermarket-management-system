@@ -260,17 +260,20 @@ const confirmPayment = async (req, res) => {
       Math.random().toString(36).substring(7).toUpperCase();
 
     const defaultUser = await prisma.user.findFirst();
-    
+
     if (!defaultUser) {
-        return res.status(500).json({ success: false, error: "System Error: No valid admin/user found to link sale." });
+      return res
+        .status(500)
+        .json({
+          success: false,
+          error: "System Error: No valid admin/user found to link sale.",
+        });
     }
 
     const result = await prisma.$transaction(async (tx) => {
       const sale = await tx.sale.create({
         data: {
           branchId: branchId,
-          customerId: defaultUser.id,
-          customerEmail: phoneNumber + "@pos.local",
           totalAmount: totalAmount,
           mpesaReference: mpesaReference,
           transactionDate: new Date(),
@@ -372,7 +375,7 @@ const getReceipt = async (req, res) => {
         subtotal: parseFloat(item.subtotal),
       })),
       total: parseFloat(sale.totalAmount),
-      paymentMethod: "MPESA", 
+      paymentMethod: "MPESA",
     };
 
     res.json(receipt);

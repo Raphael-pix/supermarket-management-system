@@ -6,6 +6,7 @@ import {
   getProducts,
   restockBranch,
   getLowStock,
+  restockHQ,
 } from "../controllers/inventory.controller.js";
 
 const router = Router();
@@ -21,5 +22,7 @@ router.get("/products", getProducts);
 router.get("/low-stock", getLowStock);
 
 router.post("/restock", restockBranch);
+
+router.post("/restockhq", restockHQ);
 
 export default router;

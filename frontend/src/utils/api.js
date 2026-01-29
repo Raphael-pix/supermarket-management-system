@@ -36,6 +36,7 @@ export const inventoryAPI = {
   getProducts: () => api.get("/inventory/products"),
   getLowStock: () => api.get("/inventory/low-stock"),
   restockBranch: (data) => api.post("/inventory/restock", data),
+  restockHq: (data) => api.post("/inventory/restockhq", data),
 };
 
 // Sales API
