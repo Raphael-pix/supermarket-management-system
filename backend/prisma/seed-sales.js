@@ -11,6 +11,18 @@ function generateMpesaRef() {
   return "MPX" + Date.now() + Math.random().toString(36).substring(2, 8);
 }
 
+function randomDate() {
+  const now = new Date();
+  const twoWeeksAgo = new Date();
+  twoWeeksAgo.setDate(now.getDate() - 14);
+
+  const randomTime =
+    twoWeeksAgo.getTime() +
+    Math.random() * (now.getTime() - twoWeeksAgo.getTime());
+
+  return new Date(randomTime);
+}
+
 async function main() {
   console.log("🧹 Clearing existing sales...");
   await prisma.saleItem.deleteMany();
@@ -51,12 +63,18 @@ async function main() {
         };
       });
 
+      const mpesaReference =
+        "MPX" +
+        Date.now() +
+        Math.random().toString(36).substring(7).toUpperCase();
+
       await prisma.sale.create({
         data: {
           branchId: branch.id,
           mpesaReference: generateMpesaRef(),
           checkoutRequestId: randomUUID(),
           totalAmount,
+          transactionDate: randomDate(),
           items: {
             create: saleItems,
           },

@@ -1,4 +1,5 @@
 import axios from "axios";
+import crypto from "crypto";
 
 class MpesaService {
   constructor() {
@@ -77,8 +78,8 @@ class MpesaService {
 
       return {
         success: true,
-        checkoutRequestId: "MOCK_" + Date.now(),
-        merchantRequestId: "MOCK_MERCHANT_" + Date.now(),
+        checkoutRequestId: `MOCK_${crypto.randomUUID()}`,
+        merchantRequestId: `MOCK_MERCHANT_${crypto.randomUUID()}`,
       };
     }
     try {
