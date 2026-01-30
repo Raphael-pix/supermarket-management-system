@@ -221,7 +221,7 @@ const Checkout = () => {
             )}
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium mb-2">
                 M-Pesa Phone Number
               </label>
               <div className="relative">
@@ -289,7 +289,7 @@ const Checkout = () => {
         {/* Payment Success */}
         {paymentStatus === "success" && (
           <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-20 h-20 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
               <svg
                 className="w-10 h-10 text-primary"
                 fill="none"
